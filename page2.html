@@ -56,18 +56,27 @@ const NEXT_PAGE_URL = "page3.html"; // 다음 페이지 파일명
     const payload = {
       type,
       ts: new Date().toISOString(),
-      ms: Math.round(performance.now()-startMs),
+      ms: Math.round(performance.now() - startMs),
       pid,
       url: location.href,
       ua: navigator.userAgent,
       detail
     };
-    try{
-      await fetch(LOG_ENDPOINT,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-    }catch(e){
-      try{navigator.sendBeacon && navigator.sendBeacon(LOG_ENDPOINT,new Blob([JSON.stringify(payload)],{type:'application/json'}));}catch(_){}}
+    try {
+      await fetch(LOG_ENDPOINT, {
+        method: 'POST',
+        mode: 'no-cors',            // 프리플라이트 방지
+        // headers 제거! ('application/json' 쓰면 OPTIONS 발생)
+        body: JSON.stringify(payload)
+      });
+    } catch (e) {
+      try {
+        // Blob 불필요 — 문자열 그대로 전송
+        navigator.sendBeacon && navigator.sendBeacon(LOG_ENDPOINT, JSON.stringify(payload));
+      } catch (_) {}
+    }
   }
-
+  
   log('page_load',{page:2});
 
   document.getElementById('nextBtn').addEventListener('click', async ()=>{
