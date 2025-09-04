@@ -168,23 +168,46 @@ const NEXT_PAGE_URL = "page10.html";
   });
 
   async function log(type, detail){
-    const payload = {type, ts:new Date().toISOString(), ms:Math.round(performance.now()-startMs), pid, url:location.href, ua:navigator.userAgent, detail};
-    try{ await fetch(LOG_ENDPOINT,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});}catch(e){ try{navigator.sendBeacon && navigator.sendBeacon(LOG_ENDPOINT,new Blob([JSON.stringify(payload)],{type:'application/json'}));}catch(_){}}
+    const payload = {
+      type,
+      ts: new Date().toISOString(),
+      ms: Math.round(performance.now() - startMs),
+      pid,
+      url: location.href,
+      ua: navigator.userAgent,
+      detail
+    };
+    try {
+      await fetch(LOG_ENDPOINT, {
+        method: 'POST',
+        mode: 'no-cors',
+        // ❌ headers: {'Content-Type':'application/json'} 제거 (프리플라이트 방지)
+        body: JSON.stringify(payload)
+      });
+    } catch (e) {
+      try {
+        // sendBeacon은 문자열도 OK (기본 text/plain)
+        navigator.sendBeacon && navigator.sendBeacon(LOG_ENDPOINT, JSON.stringify(payload));
+      } catch (_) {}
+    }
   }
+
+  // 초기 로그 — 이 파일의 실제 페이지 번호로 맞추세요
+  log('page_load', { page: 9 }); // 예: 이 파일이 Page 9가 아니라면 1/7 등으로 수정
 
   function collect(names){
     const out={};
-    names.forEach(n=>{ const el=document.querySelector(`input[name="${n}"]:checked`); if(el) out[n]=el.value; });
+    names.forEach(n=>{
+      const el=document.querySelector(`input[name="${n}"]:checked`);
+      if(el) out[n]=el.value;
+    });
     return out;
   }
-
-  // 초기 로그
-  log('page_load',{page:9});
 
   nextBtn.addEventListener('click', async ()=>{
     const ans = collect(['s1_q1','s1_q2','s1_q3','s2_q1','s2_q2','s2_q3']);
     await log('dv_survey_submit', ans);
-    location.href = NEXT_PAGE_URL + (pid?`?pid=${encodeURIComponent(pid)}`:'');
+    location.href = NEXT_PAGE_URL + (pid ? `?pid=${encodeURIComponent(pid)}` : '');
   });
 })();
 </script>
