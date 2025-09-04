@@ -78,24 +78,45 @@ const text = `정신질환자들은 솔직히 사회에서는 짐이지.
   document.getElementById('saveCnt').textContent = counts.save.toLocaleString();
 
   async function log(type, detail){
-    const payload = {type, ts:new Date().toISOString(), ms:Math.round(performance.now()-startMs), pid, url:location.href, ua:navigator.userAgent, detail};
-    try{ await fetch(LOG_ENDPOINT,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});}catch(e){ try{navigator.sendBeacon && navigator.sendBeacon(LOG_ENDPOINT,new Blob([JSON.stringify(payload)],{type:'application/json'}));}catch(_){}}
+    const payload = {
+      type,
+      ts: new Date().toISOString(),
+      ms: Math.round(performance.now() - startMs),
+      pid,
+      url: location.href,
+      ua: navigator.userAgent,
+      detail
+    };
+    try {
+      await fetch(LOG_ENDPOINT, {
+        method: 'POST',
+        mode: 'no-cors',            // 프리플라이트 방지
+        // headers 제거! ('application/json' 쓰면 OPTIONS 발생)
+        body: JSON.stringify(payload)
+      });
+    } catch (e) {
+      try {
+        // Blob 불필요 — 문자열 그대로 전송
+        navigator.sendBeacon && navigator.sendBeacon(LOG_ENDPOINT, JSON.stringify(payload));
+      } catch (_) {}
+    }
   }
 
-  log('page_load',{page:8});
+  // 페이지 로드 로그 (이 파일이 Page 8이면 8 유지)
+  log('page_load', { page: 8 });
 
   // 타이머 진행바
   const bar = document.getElementById('bar');
   let elapsed = 0;
   const interval = setInterval(()=>{
     elapsed += 1000;
-    bar.style.width = Math.min(100, (elapsed/DISPLAY_MS)*100)+"%";
-    if(elapsed>=DISPLAY_MS){
+    bar.style.width = Math.min(100, (elapsed / DISPLAY_MS) * 100) + "%";
+    if (elapsed >= DISPLAY_MS) {
       clearInterval(interval);
-      log('stimulus_timeout_redirect',{});
-      location.href = NEXT_PAGE_URL + (pid?`?pid=${encodeURIComponent(pid)}`:'');
+      log('stimulus_timeout_redirect', {});
+      location.href = NEXT_PAGE_URL + (pid ? `?pid=${encodeURIComponent(pid)}` : '');
     }
-  },1000);
+  }, 1000);
 })();
 </script>
 </body>
