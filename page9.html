@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>실험 v2 · Page 9 (종속 변인 측정)</title>
+<style>
+  :root{--line:#e5e7eb;--pri:#2563eb}
+  *{box-sizing:border-box}
+  body{margin:0;background:#f6f7f9;font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,Arial,sans-serif;color:#111827;line-height:1.6}
+  header{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--line);padding:12px;text-align:center;font-weight:700}
+  main{max-width:980px;margin:0 auto;padding:18px}
+  h1{font-size:20px;margin:6px 0 12px}
+  .section{margin:14px 0 28px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,.04);padding:14px 16px}
+  .lead{font-weight:700;margin:0 0 10px}
+  table{border-collapse:collapse;width:100%;margin-top:12px;table-layout:fixed}
+  th,td{border:1px solid var(--line);padding:8px;text-align:center;word-wrap:break-word}
+  th{background:#f9fafb}
+  td:first-child, th:first-child{text-align:left}
+  td label{display:block;cursor:pointer}
+  .btn-area{text-align:center;margin-top:24px}
+  .btn{border:none;border-radius:10px;padding:12px 20px;font-size:16px;background:var(--pri);color:#fff;font-weight:600;cursor:pointer}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+</style>
+</head>
+<body>
+<header>종속 변인 측정</header>
+<main>
+  <h1>아래 문항에 응답해 주세요. 모든 문항에 응답해야 다음으로 이동할 수 있습니다.</h1>
+
+  <!-- 섹션 1: 설득/수용 관련 -->
+  <section class="section">
+    <p class="lead">앞서 본 온라인 게시물의 의견에 대해 어떻게 생각하십니까? 아래 내용에 대해 동의하는 정도를 해당 칸에 표기해 주십시오.</p>
+    <form id="sec1">
+      <table>
+        <colgroup>
+          <col style="width:32%">
+          <col style="width:9.714%"><col style="width:9.714%"><col style="width:9.714%"><col style="width:9.714%"><col style="width:9.714%"><col style="width:9.714%"><col style="width:9.716%">
+        </colgroup>
+        <thead>
+          <tr>
+            <th>나는 내가 본 온라인 게시물의</th>
+            <th>전혀<br/>그렇지 않다 (1)</th>
+            <th>그렇지 않다 (2)</th>
+            <th>별로<br/>그렇지 않다 (3)</th>
+            <th>보통이다 (4)</th>
+            <th>약간<br/>그렇다 (5)</th>
+            <th>그렇다 (6)</th>
+            <th>매우<br/>그렇다 (7)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>의견에 결코 동의할 수 없다.</td>
+            <td><label><input type="radio" name="s1_q1" value="1"></label></td>
+            <td><label><input type="radio" name="s1_q1" value="2"></label></td>
+            <td><label><input type="radio" name="s1_q1" value="3"></label></td>
+            <td><label><input type="radio" name="s1_q1" value="4"></label></td>
+            <td><label><input type="radio" name="s1_q1" value="5"></label></td>
+            <td><label><input type="radio" name="s1_q1" value="6"></label></td>
+            <td><label><input type="radio" name="s1_q1" value="7"></label></td>
+          </tr>
+          <tr>
+            <td>의견에 허점이 있다고 생각한다.</td>
+            <td><label><input type="radio" name="s1_q2" value="1"></label></td>
+            <td><label><input type="radio" name="s1_q2" value="2"></label></td>
+            <td><label><input type="radio" name="s1_q2" value="3"></label></td>
+            <td><label><input type="radio" name="s1_q2" value="4"></label></td>
+            <td><label><input type="radio" name="s1_q2" value="5"></label></td>
+            <td><label><input type="radio" name="s1_q2" value="6"></label></td>
+            <td><label><input type="radio" name="s1_q2" value="7"></label></td>
+          </tr>
+          <tr>
+            <td>*의견을 쉽게 받아들였다.</td>
+            <td><label><input type="radio" name="s1_q3" value="1"></label></td>
+            <td><label><input type="radio" name="s1_q3" value="2"></label></td>
+            <td><label><input type="radio" name="s1_q3" value="3"></label></td>
+            <td><label><input type="radio" name="s1_q3" value="4"></label></td>
+            <td><label><input type="radio" name="s1_q3" value="5"></label></td>
+            <td><label><input type="radio" name="s1_q3" value="6"></label></td>
+            <td><label><input type="radio" name="s1_q3" value="7"></label></td>
+          </tr>
+        </tbody>
+      </table>
+    </form>
+  </section>
+
+  <!-- 섹션 2: 공격/차별/혐오 인식 -->
+  <section class="section">
+    <p class="lead">앞서 본 온라인 게시물이 특정 집단에 대해 어떻게 발언하고 있다고 생각하십니까? 아래 내용에 대해 동의하는 정도를 해당 칸에 표기해 주십시오.</p>
+    <form id="sec2">
+      <table>
+        <colgroup>
+          <col style="width:32%">
+          <col style="width:9.714%"><col style="width:9.714%"><col style="width:9.714%"><col style="width:9.714%"><col style="width:9.714%"><col style="width:9.714%"><col style="width:9.716%">
+        </colgroup>
+        <thead>
+          <tr>
+            <th>내가 본 온라인 게시물은 특정 집단에 대해</th>
+            <th>전혀<br/>그렇지 않다 (1)</th>
+            <th>그렇지 않다 (2)</th>
+            <th>별로<br/>그렇지 않다 (3)</th>
+            <th>보통이다 (4)</th>
+            <th>약간<br/>그렇다 (5)</th>
+            <th>그렇다 (6)</th>
+            <th>매우<br/>그렇다 (7)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>공격적인 발언을 하고 있다.</td>
+            <td><label><input type="radio" name="s2_q1" value="1"></label></td>
+            <td><label><input type="radio" name="s2_q1" value="2"></label></td>
+            <td><label><input type="radio" name="s2_q1" value="3"></label></td>
+            <td><label><input type="radio" name="s2_q1" value="4"></label></td>
+            <td><label><input type="radio" name="s2_q1" value="5"></label></td>
+            <td><label><input type="radio" name="s2_q1" value="6"></label></td>
+            <td><label><input type="radio" name="s2_q1" value="7"></label></td>
+          </tr>
+          <tr>
+            <td>차별적인 발언을 하고 있다.</td>
+            <td><label><input type="radio" name="s2_q2" value="1"></label></td>
+            <td><label><input type="radio" name="s2_q2" value="2"></label></td>
+            <td><label><input type="radio" name="s2_q2" value="3"></label></td>
+            <td><label><input type="radio" name="s2_q2" value="4"></label></td>
+            <td><label><input type="radio" name="s2_q2" value="5"></label></td>
+            <td><label><input type="radio" name="s2_q2" value="6"></label></td>
+            <td><label><input type="radio" name="s2_q2" value="7"></label></td>
+          </tr>
+          <tr>
+            <td>혐오적인 발언을 하고 있다.</td>
+            <td><label><input type="radio" name="s2_q3" value="1"></label></td>
+            <td><label><input type="radio" name="s2_q3" value="2"></label></td>
+            <td><label><input type="radio" name="s2_q3" value="3"></label></td>
+            <td><label><input type="radio" name="s2_q3" value="4"></label></td>
+            <td><label><input type="radio" name="s2_q3" value="5"></label></td>
+            <td><label><input type="radio" name="s2_q3" value="6"></label></td>
+            <td><label><input type="radio" name="s2_q3" value="7"></label></td>
+          </tr>
+        </tbody>
+      </table>
+    </form>
+  </section>
+
+  <div class="btn-area">
+    <button id="nextBtn" class="btn" disabled>다음</button>
+  </div>
+</main>
+
+<script>
+/***** ▼ 설정 ▼ *****/
+const LOG_ENDPOINT = "https://script.google.com/macros/s/AKfycbxQES7OUwjYdb3me2QR_NDT455vEWh12wS3MaI4ccnI6u2-7DTBjXBitPOTOMmZCn-G/exec";
+const NEXT_PAGE_URL = "page10.html";
+/***** ▲ 설정 끝 ▲ *****/
+
+(function(){
+  const startMs = performance.now();
+  const pid = localStorage.getItem('exp_pid') || new URLSearchParams(location.search).get('pid') || null;
+  const nextBtn = document.getElementById('nextBtn');
+
+  function allAnswered(){
+    const need = ['s1_q1','s1_q2','s1_q3','s2_q1','s2_q2','s2_q3'];
+    return need.every(n => document.querySelector(`input[name="${n}"]:checked`));
+  }
+
+  document.querySelectorAll('input[type="radio"]').forEach(el=>{
+    el.addEventListener('change', ()=>{ nextBtn.disabled = !allAnswered(); });
+  });
+
+  async function log(type, detail){
+    const payload = {type, ts:new Date().toISOString(), ms:Math.round(performance.now()-startMs), pid, url:location.href, ua:navigator.userAgent, detail};
+    try{ await fetch(LOG_ENDPOINT,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});}catch(e){ try{navigator.sendBeacon && navigator.sendBeacon(LOG_ENDPOINT,new Blob([JSON.stringify(payload)],{type:'application/json'}));}catch(_){}}
+  }
+
+  function collect(names){
+    const out={};
+    names.forEach(n=>{ const el=document.querySelector(`input[name="${n}"]:checked`); if(el) out[n]=el.value; });
+    return out;
+  }
+
+  // 초기 로그
+  log('page_load',{page:9});
+
+  nextBtn.addEventListener('click', async ()=>{
+    const ans = collect(['s1_q1','s1_q2','s1_q3','s2_q1','s2_q2','s2_q3']);
+    await log('dv_survey_submit', ans);
+    location.href = NEXT_PAGE_URL + (pid?`?pid=${encodeURIComponent(pid)}`:'');
+  });
+})();
+</script>
+</body>
+</html>

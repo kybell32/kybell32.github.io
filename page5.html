@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>실험 v2 · Page 5 (자극물 제시)</title>
+<style>
+  :root{--bg:#f6f7f9;--card:#fff;--line:#e5e7eb;--pri:#2563eb;--muted:#6b7280}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,Arial,sans-serif;color:#111827}
+  header{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--line);padding:10px 16px;z-index:10}
+  header .inner{max-width:760px;margin:0 auto;display:flex;align-items:center;gap:10px}
+  .brand{font-weight:700}
+  .spacer{flex:1}
+  .timer{font-variant-numeric:tabular-nums}
+  main{max-width:760px;margin:16px auto;padding:0 16px}
+  .post{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:0 6px 20px rgba(0,0,0,.04)}
+  .row{display:flex;gap:12px;align-items:center}
+  .avatar{width:40px;height:40px;border-radius:999px;background:#d1d5db}
+  h2{margin:0;font-size:18px}
+  .meta{font-size:12px;color:var(--muted)}
+  .content{margin-top:10px;white-space:pre-wrap;line-height:1.7}
+  .stats{display:flex;gap:16px;align-items:center;color:#374151;margin-top:12px;font-size:14px}
+  .progress{height:6px;background:#e5e7eb;border-radius:999px;overflow:hidden;margin-top:12px}
+  .bar{height:100%;width:0%;background:var(--pri)}
+</style>
+</head>
+<body>
+<header>
+  <div class="inner">
+    <div class="brand">실험 피드</div>
+    <div class="spacer"></div>
+    <div class="timer"><span id="sec">45</span>s</div>
+  </div>
+</header>
+
+<main>
+  <article class="post">
+    <div class="row">
+      <div class="avatar" aria-hidden="true"></div>
+      <div>
+        <h2 id="title">제목</h2>
+        <div class="meta">@user • 지금</div>
+      </div>
+    </div>
+    <div id="body" class="content"></div>
+    <div class="stats">
+      <div>공유 <strong id="shareCnt">0</strong></div>
+      <div>좋아요 <strong id="likeCnt">0</strong></div>
+      <div>댓글 <strong id="commentCnt">0</strong></div>
+      <div>저장 <strong id="saveCnt">0</strong></div>
+    </div>
+    <div class="progress"><div id="bar" class="bar"></div></div>
+  </article>
+</main>
+
+<script>
+/***** ▼ 설정 ▼ *****/
+const LOG_ENDPOINT = "https://script.google.com/macros/s/PASTE_YOUR_WEB_APP_URL/exec"; // Apps Script Web App URL
+const DURATION_SEC = 45; // 제시 시간(초)
+const NEXT_PAGE_URL = "page6.html"; // 45초 뒤 이동할 페이지
+/***** ▲ 설정 끝 ▲ *****/
+
+(function(){
+  const startMs = performance.now();
+  const pid = localStorage.getItem('exp_pid') || new URLSearchParams(location.search).get('pid') || null;
+
+  // 두 버전 텍스트
+  const A = {
+    key: 'A',
+    title: '정치병자들이 물에 빠졌다.txt',
+    body: `정치병자들이 물에 빠졌다.
+어떤 사람이 재빨리 달려가 한 가지 질문을 하고는 다시 돌아갔다.
+
+그 장면을 목격한 지나가던 행인이 이상하게 생각하여
+그 사람에게 다가가 물었다.
+
+“왜 아무도 구하지 않았소?”
+
+그러자 그 사람이 대답했다.
+
+“둘은 정치병자인데 하나는 좌빨 하나는 보수 꼴통이더이다. 둘 다 구하면 지들이 물에 빠진 게 지금 정권 때문이니 지난 정권 때문이니 하며 싸울 테고, 보수 정치병자만 구하자니 진보 정치병자가 ‘날 버리면 넌 기득권 앞잡이다!’ 하고, 진보 정치병자만 구하자니 보수 정치병자가 ‘날 버리면 빨갱이 인증이다!’라고 능지 낮은 미친 소리를 해댈 게 뻔하잖소.”
+
+그 말을 들은 행인이 고개를 끄덕이며 가던 길을 계속 갔다.
+그리고 세상은 조용해졌다.`
+  };
+
+  const B = {
+    key: 'B',
+    title: '정치병자들은 답이 없다.',
+    body: `정치병자들은 답이 없다.
+말도 안 통하고 그냥 사회의 악임.
+
+진보 정치병자들한테 조금이라도 보수 입장으로 얘기하면
+기득권 편이라고 일반화 하고,
+
+보수 정치병자들한테 조금이라도 진보 입장을 얘기하면
+빨갱이로 몰아감.
+
+진짜 아무 맥락 없이 정치로 시작해서 정치로 끝나는 얘기만 하고, 뭐만 하면 프레임 씌우면서 그 정치적 틀에서만 생각을 함. 맨날 좌우 갈라치기로 과몰입 하는데 지들이 상대 진영 탓하는 거 들어보면 망상 장애 그 자체임. 보고 싶은 것만 보고 듣고 싶은 것만 듣고, 어디서 이상한 유튜브 보고 그게 사실이라고 믿는 게 정상적인 지능이냐고..
+
+
+정치병은 약도 안 통하고 못 고친다..
+그냥 사라지는 게 답임.`
+  };
+
+  // 무작위 배정
+  const variant = Math.random() < 0.5 ? A : B;
+  document.getElementById('title').textContent = variant.title;
+  document.getElementById('body').textContent = variant.body;
+
+  // 노출 지표 생성 (공유 > 좋아요 > 댓글 > 저장)
+  function genCounts(){
+    const save = 30 + Math.floor(Math.random()*71); // 저장 30~100
+    const comment = save + 20 + Math.floor(Math.random()*181); // 댓글 > 저장
+    const like = comment + 50 + Math.floor(Math.random()*601); // 좋아요 > 댓글
+    const share = Math.min(2000, like + 100 + Math.floor(Math.random()*901)); // 공유 > 좋아요, 최대 2000
+    return {share, like, comment, save};
+  }
+  const counts = genCounts();
+  document.getElementById('shareCnt').textContent = counts.share.toLocaleString();
+  document.getElementById('likeCnt').textContent = counts.like.toLocaleString();
+  document.getElementById('commentCnt').textContent = counts.comment.toLocaleString();
+  document.getElementById('saveCnt').textContent = counts.save.toLocaleString();
+
+  // 로깅 함수
+  async function log(type, detail){
+    const payload = { type, ts:new Date().toISOString(), ms:Math.round(performance.now()-startMs), pid, url:location.href, ua:navigator.userAgent, detail };
+    try{ await fetch(LOG_ENDPOINT,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});}catch(e){ try{navigator.sendBeacon && navigator.sendBeacon(LOG_ENDPOINT,new Blob([JSON.stringify(payload)],{type:'application/json'}));}catch(_){}}
+  }
+
+  // 배정 로그 & 저장
+  localStorage.setItem('stimulus_variant', variant.key);
+  log('stimulus_assign', { variant: variant.key });
+  log('page_load', { page:5, variant: variant.key });
+
+  // 카운트다운 & 진행바
+  const secEl = document.getElementById('sec');
+  const barEl = document.getElementById('bar');
+  let left = DURATION_SEC;
+  secEl.textContent = left;
+  barEl.style.width = '0%';
+
+  const tick = setInterval(()=>{
+    left -= 1;
+    if(left < 0){ left = 0; }
+    secEl.textContent = left;
+    const progress = ((DURATION_SEC - left)/DURATION_SEC)*100;
+    barEl.style.width = progress + '%';
+    if(left === 0){ clearInterval(tick); redirect(); }
+  }, 1000);
+
+  const hard = setTimeout(()=>{ redirect(); }, DURATION_SEC*1000 + 250);
+
+  async function redirect(){
+    clearTimeout(hard);
+    await log('stimulus_timeout_redirect', { variant: variant.key, shown_sec: DURATION_SEC });
+    location.href = NEXT_PAGE_URL + (pid?`?pid=${encodeURIComponent(pid)}`:'');
+  }
+
+  document.addEventListener('visibilitychange', ()=>{
+    log(document.visibilityState==='hidden'?'page_hidden':'page_visible', { page:5 });
+  });
+})();
+</script>
+</body>
+</html>

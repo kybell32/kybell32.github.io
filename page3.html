@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>실험 v2 · Page 3 (연구 동의서)</title>
+<style>
+  :root{--line:#e5e7eb;--pri:#2563eb;--muted:#6b7280}
+  *{box-sizing:border-box}
+  body{margin:0;background:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,Arial,sans-serif;color:#111827;line-height:1.6}
+  header{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--line);padding:12px;text-align:center;font-weight:700}
+  main{max-width:880px;margin:0 auto;padding:18px}
+  h1{font-size:20px;margin:6px 0 12px}
+  .card{border:1px solid var(--line);border-radius:12px;padding:16px}
+  .q{border-top:1px dashed var(--line);padding-top:12px;margin-top:12px}
+  .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  .field{display:flex;align-items:center;gap:8px}
+  .name-row{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-top:12px}
+  .name-field{display:flex;align-items:center;gap:8px}
+  input[type="text"]{border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+  .sig-wrap{position:relative;border:1px dashed var(--line);border-radius:10px;padding:10px}
+  .sig-title{font-size:12px;color:var(--muted);margin-bottom:6px}
+  canvas{display:block;touch-action:none;border:1px solid var(--line);border-radius:8px;background:#fff}
+  .sig-tools{display:flex;gap:8px;margin-top:8px}
+  .btn{border:none;border-radius:10px;padding:10px 14px;background:#f3f4f6;cursor:pointer}
+  .btn.primary{background:var(--pri);color:#fff}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .note{font-size:12px;color:var(--muted)}
+  .contact{margin-top:10px;font-size:14px}
+  .footer{margin-top:18px;text-align:center}
+</style>
+</head>
+<body>
+<header>연구 동의서</header>
+<main>
+  <section class="card">
+    <p>본인은 본 연구와 관련된 충분한 설명을 읽고 이해하였으며, 충분한 시간을 갖고 생각한 이후에 상기 연구에 참여하기를 자발적인 의사에 의하여 동의합니다. 본인은 설문에 응답하거나 과제를 수행하는 과정에서 도중에 그만두기를 원한다면 언제든지 그만둘 수 있다는 점을 이해하고, 이때는 관련된 정보가 모두 파기됨을 숙지하고 있습니다.</p>
+
+    <div class="q">
+      <div>1. 본인은 본 연구에 대한 설명을 이해하셨습니까?</div>
+      <div class="row" role="radiogroup" aria-label="문항1">
+        <label class="field"><input type="radio" name="q1" value="예"> 예</label>
+        <label class="field"><input type="radio" name="q1" value="아니오"> 아니오</label>
+      </div>
+    </div>
+
+    <div class="q">
+      <div>2. 본인은 연구의 위험과 이득에 대하여 이해하셨습니까?</div>
+      <div class="row" role="radiogroup" aria-label="문항2">
+        <label class="field"><input type="radio" name="q2" value="예"> 예</label>
+        <label class="field"><input type="radio" name="q2" value="아니오"> 아니오</label>
+      </div>
+    </div>
+
+    <div class="q">
+      <div>3. 본인은 연구 진행 중 언제든지 어떠한 불이익 없이 연구의 참여를 철회할 수 있음을 이해하셨습니까?</div>
+      <div class="row" role="radiogroup" aria-label="문항3">
+        <label class="field"><input type="radio" name="q3" value="예"> 예</label>
+        <label class="field"><input type="radio" name="q3" value="아니오"> 아니오</label>
+      </div>
+    </div>
+
+    <div class="q">
+      <div>4. 본인은 본 연구에 자발적인 의사에 의하여 참여하시겠습니까?</div>
+      <div class="row" role="radiogroup" aria-label="문항4">
+        <label class="field"><input type="radio" name="q4" value="예"> 예</label>
+        <label class="field"><input type="radio" name="q4" value="아니오"> 아니오</label>
+      </div>
+    </div>
+
+    <div class="q">
+      <div class="name-row">
+        <div class="name-field">
+          <label for="pname">참여자 성명:</label>
+          <input id="pname" type="text" placeholder="성명 입력" autocomplete="off" />
+          <span>(인)</span>
+        </div>
+        <div class="name-field">
+          <span>연구자 성명: 남기연</span>
+          <span>(인)</span>
+        </div>
+      </div>
+      <div class="sig-wrap" style="margin-top:8px">
+        <div class="sig-title">※ 참여자 서명을 이 칸에 그려 주세요. (마우스/터치 가능)</div>
+        <canvas id="sig" width="520" height="160"></canvas>
+        <div class="sig-tools">
+          <button id="clearSig" class="btn" type="button">서명 지우기</button>
+          <button id="undoSig" class="btn" type="button">되돌리기</button>
+        </div>
+        <div class="note">서명은 이미지 데이터로 저장됩니다.</div>
+      </div>
+
+      <div class="contact">
+        ■ 연구담당자: 중앙대학교 석사과정 남기연 (TEL: 010-5001-2418, kybell@kakao.com)<br/>
+        ■ 지도교수: 중앙대학교 심리학과 교수 현명호 (TEL: 02-820-5125, hyunmh@cau.ac.kr)<br/>
+        중앙대학교 교양대학 교수 권영실<br/>
+        ■ 중앙대학교 생명윤리 위원회 (TEL: 02-820-6346, ethics@cau.ac.kr)
+      </div>
+    </div>
+
+    <div class="footer">
+      <button id="nextBtn" class="btn primary" disabled>다음</button>
+    </div>
+  </section>
+</main>
+
+<script>
+/***** ▼ 설정 ▼ *****/
+const LOG_ENDPOINT = "https://script.google.com/macros/s/PASTE_YOUR_WEB_APP_URL/exec"; // 구글 앱스 스크립트 URL
+const NEXT_PAGE_URL = "page4.html"; // 다음 페이지 파일명
+/***** ▲ 설정 끝 ▲ *****/
+
+(function(){
+  const startMs = performance.now();
+  const pid = localStorage.getItem('exp_pid') || new URLSearchParams(location.search).get('pid') || null;
+  const nextBtn = document.getElementById('nextBtn');
+  const pname = document.getElementById('pname');
+
+  const qNames = ['q1','q2','q3','q4'];
+  function getAnswers(){
+    const out = {};
+    for(const n of qNames){
+      const v = (document.querySelector(`input[name="${n}"]:checked`)||{}).value || null;
+      out[n] = v;
+    }
+    return out;
+  }
+  function allYes(ans){ return ans.q1==='예' && ans.q2==='예' && ans.q3==='예' && ans.q4==='예'; }
+
+  // 서명 캔버스
+  const canvas = document.getElementById('sig');
+  const ctx = canvas.getContext('2d');
+  ctx.lineWidth = 2; ctx.lineCap='round'; ctx.lineJoin='round';
+  let drawing=false, last=null; const history=[];
+  function saveHistory(){ history.push(canvas.toDataURL('image/png')); if(history.length>30) history.shift(); }
+  function startDraw(x,y){ drawing=true; last={x,y}; ctx.beginPath(); ctx.moveTo(x,y); }
+  function moveDraw(x,y){ if(!drawing) return; ctx.lineTo(x,y); ctx.stroke(); last={x,y}; }
+  function endDraw(){ if(drawing){ drawing=false; saveHistory(); } }
+  function pos(e){ const r=canvas.getBoundingClientRect(); if(e.touches&&e.touches[0]){return {x:e.touches[0].clientX-r.left, y:e.touches[0].clientY-r.top};} return {x:e.clientX-r.left,y:e.clientY-r.top}; }
+  canvas.addEventListener('mousedown',e=>{const p=pos(e); startDraw(p.x,p.y);});
+  canvas.addEventListener('mousemove',e=>{const p=pos(e); moveDraw(p.x,p.y);});
+  window.addEventListener('mouseup',endDraw);
+  canvas.addEventListener('touchstart',e=>{e.preventDefault(); const p=pos(e); startDraw(p.x,p.y);});
+  canvas.addEventListener('touchmove',e=>{e.preventDefault(); const p=pos(e); moveDraw(p.x,p.y);});
+  window.addEventListener('touchend',endDraw);
+
+  document.getElementById('clearSig').addEventListener('click',()=>{ ctx.clearRect(0,0,canvas.width,canvas.height); history.length=0; syncState(); });
+  document.getElementById('undoSig').addEventListener('click',()=>{
+    if(history.length===0){ ctx.clearRect(0,0,canvas.width,canvas.height); return; }
+    const img = new Image();
+    const last = history.pop();
+    img.onload=()=>{ ctx.clearRect(0,0,canvas.width,canvas.height); ctx.drawImage(img,0,0); };
+    img.src=last;
+    syncState();
+  });
+
+  function hasSignature(){
+    // 빈 캔버스 여부 확인: 모든 픽셀이 흰색(초기 상태)인지 비교
+    // 간단히는 history 존재 여부로 판단
+    return history.length>0;
+  }
+
+  // 상태 동기화: 모든 답변이 "예"이고 이름/서명이 있을 때만 다음 가능
+  function syncState(){
+    const ans = getAnswers();
+    const ok = allYes(ans) && !!pname.value.trim() && hasSignature();
+    nextBtn.disabled = !ok;
+  }
+
+  document.querySelectorAll('input[type="radio"]').forEach(el=>el.addEventListener('change', syncState));
+  pname.addEventListener('input', syncState);
+
+  async function log(type, detail){
+    const payload = {
+      type,
+      ts: new Date().toISOString(),
+      ms: Math.round(performance.now()-startMs),
+      pid,
+      url: location.href,
+      ua: navigator.userAgent,
+      detail
+    };
+    try{ await fetch(LOG_ENDPOINT,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});}catch(e){ try{navigator.sendBeacon && navigator.sendBeacon(LOG_ENDPOINT,new Blob([JSON.stringify(payload)],{type:'application/json'}));}catch(_){}}
+  }
+
+  // 초기 로그
+  log('page_load',{page:3});
+
+  nextBtn.addEventListener('click', async ()=>{
+    const ans = getAnswers();
+    if(!allYes(ans)) return; // 방어
+    const name = pname.value.trim();
+    const sigData = canvas.toDataURL('image/png'); // 서명 이미지(base64)
+    localStorage.setItem('participant_name', name);
+    await log('consent_submit',{answers:ans, name, signature:sigData.substring(0,64)+"..."}); // 로그에는 서명 전문 대신 앞부분만
+    // 서명 전문 전송(선택): 큰 데이터 허용 시 아래처럼 전체를 전송하도록 바꿀 수 있음
+    // await log('consent_signature',{signature:sigData});
+    location.href = NEXT_PAGE_URL + (pid?`?pid=${encodeURIComponent(pid)}`:'');
+  });
+})();
+</script>
+</body>
+</html>

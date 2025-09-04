@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>실험 v2 · Page 2 (연구 안내)</title>
+<style>
+  body{margin:0;background:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,Arial,sans-serif;color:#111827;line-height:1.6}
+  header{position:sticky;top:0;background:#fff;border-bottom:1px solid #e5e7eb;padding:12px;text-align:center;font-weight:600}
+  main{max-width:800px;margin:0 auto;padding:20px;}
+  h1{font-size:20px;margin-top:0}
+  .section{margin-bottom:24px}
+  .btn-area{margin:24px 0;text-align:center}
+  .btn{border:none;border-radius:10px;padding:12px 20px;font-size:16px;background:#2563eb;color:#fff;font-weight:600;cursor:pointer}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+</style>
+</head>
+<body>
+<header>연구 안내</header>
+<main>
+  <h1>연구 제목: 소셜 미디어 게시글과 이용자 특성 연구</h1>
+  <div class="section">
+    <h2>연구 설명</h2>
+    <p>본 연구는 대한민국 국적의 만 19세 이상 성인의 소셜 미디어 이용자의 특성과 의사결정 방식의 관계에 대해 이해하는 것을 목적으로 합니다. 연구 기간은 2025년 9월부터 2025년 9월까지입니다. 귀하께서 응답해주신 내용은 소셜 미디어 이용자 특성을 이해하는데 매우 귀중한 자료로 사용될 것입니다.</p>
+  </div>
+  <div class="section">
+    <h2>연구 안내</h2>
+    <p>연구는 이용자의 성격 특성을 확인하기 위한 설문을 실시한 후에 자극에 대한 반응을 확인하는 과제를 진행합니다. 마지막으로 의사결정 방식을 확인하기 위한 과제를 실시합니다.</p>
+    <p>연구 도중 연구와 무관한 행위를 삼가 부탁드리며 집중하여 참여해주시길 바랍니다. 연구 소요 시간은 약 30분입니다. 전체 절차 완료 후 7,000원 상당 보상을 지급합니다.</p>
+  </div>
+  <div class="section">
+    <h2>연구 대상자 관련 자료의 처리</h2>
+    <p>본 연구는 2008년 제59차 세계의사회(WMA)에서 개정된 헬싱키 선언과 통계법 제 8조, 제 13조를 준수할 것입니다. 연구책임자와 연구담당자만 아는 특정 암호를 통해서만 자료에 접근할 수 있으며, 모든 설문의 응답 및 과제 데이터는 익명이 보장됩니다. 연구 목적을 위한 분석 외에는 절대 사용되지 않습니다. 연구가 종료된 후 개인정보는 즉시 파기, 이외의 데이터는 5년간 보관되며 이후에는 모두 영구 삭제될 것입니다.</p>
+  </div>
+  <div class="section">
+    <h2>연구 참여자의 권리</h2>
+    <p>본 연구는 한국임상심리학회 윤리규정 제 29조의 세부 규정에 의거해 참여자의 권리를 존중합니다. 언제든지 연구 참여 동의를 철회, 연구 참여 중단할 수 있으며 이로 인해 발생하는 불이익은 없습니다. 연구 참여를 철회한 경우에는 참여자의 정보가 모두 파기됩니다. 참여 도중 심리적 부작용을 경험하시거나 연구에 대한 문의가 있으신 경우, 아래 연구담당자의 연락처로 문의해 주시기 바랍니다.</p>
+    <p>■ 연구담당자: 중앙대학교 석사과정 남기연 (TEL: 010-5001-2418, kybell@kakao.com)<br/>
+       ■ 지도교수: 중앙대학교 심리학과 교수 현명호, 중앙대학교 교양대학 교수 권영실<br/>
+       ■ 중앙대학교 생명윤리 위원회 (TEL: 02-820-6346, ethics@cau.ac.kr)</p>
+  </div>
+  <div class="btn-area">
+    <button id="nextBtn" class="btn">다음</button>
+  </div>
+</main>
+
+<script>
+const LOG_ENDPOINT = "https://script.google.com/macros/s/AKfycbxQES7OUwjYdb3me2QR_NDT455vEWh12wS3MaI4ccnI6u2-7DTBjXBitPOTOMmZCn-G/exec"; // 구글 앱스 스크립트 URL
+const NEXT_PAGE_URL = "page3.html"; // 다음 페이지 파일명
+
+(function(){
+  const startMs = performance.now();
+  const pid = localStorage.getItem('exp_pid') || new URLSearchParams(location.search).get('pid') || null;
+
+  async function log(type, detail){
+    const payload = {
+      type,
+      ts: new Date().toISOString(),
+      ms: Math.round(performance.now()-startMs),
+      pid,
+      url: location.href,
+      ua: navigator.userAgent,
+      detail
+    };
+    try{
+      await fetch(LOG_ENDPOINT,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    }catch(e){
+      try{navigator.sendBeacon && navigator.sendBeacon(LOG_ENDPOINT,new Blob([JSON.stringify(payload)],{type:'application/json'}));}catch(_){}}
+  }
+
+  log('page_load',{page:2});
+
+  document.getElementById('nextBtn').addEventListener('click', async ()=>{
+    await log('page2_next',{});
+    location.href = NEXT_PAGE_URL + (pid?`?pid=${encodeURIComponent(pid)}`:'');
+  });
+})();
+</script>
+</body>
+</html>

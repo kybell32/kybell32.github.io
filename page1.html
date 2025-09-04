@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>실험 v2 · Page 1 (ID 입력)</title>
+<style>
+  body{margin:0;height:100vh;display:flex;align-items:center;justify-content:center;background:#f6f7f9;font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,Arial,sans-serif;color:#111827}
+  .popup{background:#fff;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.1);padding:24px;max-width:320px;width:100%;text-align:center}
+  h1{font-size:18px;margin:0 0 12px}
+  .row{display:flex;gap:8px;justify-content:center}
+  input[type="number"]{flex:1;padding:10px;font-size:18px;text-align:center;border:1px solid #ccc;border-radius:8px;letter-spacing:4px}
+  button{border:none;background:#2563eb;color:#fff;padding:10px 16px;border-radius:8px;cursor:pointer;font-weight:600}
+  button:disabled{opacity:.5;cursor:not-allowed}
+</style>
+</head>
+<body>
+<div class="popup">
+  <h1>전화 번호 뒷자리 4개를 입력해 주세요.</h1>
+  <div class="row">
+    <input id="pid" type="number" placeholder="4자리" inputmode="numeric" maxlength="4" />
+    <button id="submitBtn" disabled>입력</button>
+  </div>
+</div>
+
+<script>
+/***** ▼ 설정 ▼ *****/
+const LOG_ENDPOINT = "https://script.google.com/macros/s/PASTE_YOUR_WEB_APP_URL/exec"; // 구글 앱스 스크립트 웹앱 URL
+const NEXT_PAGE_URL = "page2.html"; // 다음 페이지 파일명
+/***** ▲ 설정 끝 ▲ *****/
+
+(function(){
+  const pidInput = document.getElementById('pid');
+  const submitBtn = document.getElementById('submitBtn');
+  const startMs = performance.now();
+
+  function check(){
+    const v = pidInput.value.trim();
+    submitBtn.disabled = v.length !== 4;
+  }
+
+  pidInput.addEventListener('input', check);
+
+  async function log(type, detail){
+    const payload = {
+      type,
+      ts: new Date().toISOString(),
+      ms: Math.round(performance.now() - startMs),
+      pid: pidInput.value.trim() || null,
+      url: location.href,
+      ua: navigator.userAgent,
+      detail
+    };
+    try{
+      await fetch(LOG_ENDPOINT, {method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    }catch(e){
+      try{ navigator.sendBeacon && navigator.sendBeacon(LOG_ENDPOINT, new Blob([JSON.stringify(payload)], {type:'application/json'})); }catch(_){ }
+    }
+  }
+
+  submitBtn.addEventListener('click', async ()=>{
+    const id = pidInput.value.trim();
+    if(id.length!==4) return;
+    localStorage.setItem('exp_pid', id);
+    await log('id_submit', {pid:id});
+    location.href = NEXT_PAGE_URL + `?pid=${encodeURIComponent(id)}`;
+  });
+
+  // 초기 로드 로그
+  log('page_load',{page:1});
+})();
+</script>
+</body>
+</html>
