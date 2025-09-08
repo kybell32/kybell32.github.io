@@ -5,18 +5,31 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>실험 v2 · Page 6 (조작 점검)</title>
 <style>
-  :root{--line:#e5e7eb;--pri:#2563eb;--muted:#6b7280}
-  body{margin:0;background:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,Arial,sans-serif;color:#111827;line-height:1.6}
+  :root{--line:#e5e7eb;--pri:#2563eb;--bg:#f6f7f9}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,Arial,sans-serif;color:#111827;line-height:1.6}
   header{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--line);padding:12px;text-align:center;font-weight:700}
   main{max-width:880px;margin:0 auto;padding:18px}
   h1{font-size:20px;margin:6px 0 18px}
-  table{border-collapse:collapse;width:100%;margin-top:12px;table-layout:fixed}
-  th,td{border:1px solid --line;padding:8px;text-align:center;word-wrap:break-word}
-  th{background:#f9fafb}
-  td label{display:block;cursor:pointer}
+
+  .card{background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.04);padding:16px;margin:14px 0}
+  .qtitle{font-weight:700;margin-bottom:8px}
+  .help{font-size:12px;color:#6b7280;margin-bottom:8px}
+
+  .scale{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{
+    display:flex;align-items:center;gap:6px;
+    border:1px solid var(--line);border-radius:999px;padding:8px 10px;cursor:pointer;
+    user-select:none;background:#fff
+  }
+  .chip input{appearance:none;width:16px;height:16px;border:2px solid #9ca3af;border-radius:999px;display:inline-block}
+  .chip input:checked{border-color:#2563eb;background:#2563eb}
+  .chip strong{font-variant-numeric:tabular-nums}
+
   .btn-area{text-align:center;margin-top:24px}
-  .btn{border:none;border-radius:10px;padding:12px 20px;font-size:16px;background:#2563eb;color:#fff;font-weight:600;cursor:pointer}
+  .btn{border:none;border-radius:10px;padding:12px 20px;font-size:16px;background:var(--pri);color:#fff;font-weight:600;cursor:pointer}
   .btn:disabled{opacity:.5;cursor:not-allowed}
+  @media (max-width:640px){ .scale{gap:6px} .chip{padding:8px} }
 </style>
 </head>
 <body>
@@ -24,57 +37,28 @@
 <main>
   <h1>앞서 본 온라인 게시물의 어조에 대해 동의 정도를 선택해 주세요.</h1>
 
-  <form id="form">
-    <table>
-      <colgroup>
-        <col style="width:40%">
-        <col style="width:12%">
-        <col style="width:12%">
-        <col style="width:12%">
-        <col style="width:12%">
-        <col style="width:12%">
-      </colgroup>
-      <thead>
-        <tr>
-          <th>문항</th>
-          <th>전혀 그렇지 않다 (1)</th>
-          <th>그렇지 않다 (2)</th>
-          <th>보통이다 (3)</th>
-          <th>그렇다 (4)</th>
-          <th>매우 그렇다 (5)</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>웃기다.</td>
-          <td><label><input type="radio" name="q1" value="1" data-qkey="P6_Q1"></label></td>
-          <td><label><input type="radio" name="q1" value="2" data-qkey="P6_Q1"></label></td>
-          <td><label><input type="radio" name="q1" value="3" data-qkey="P6_Q1"></label></td>
-          <td><label><input type="radio" name="q1" value="4" data-qkey="P6_Q1"></label></td>
-          <td><label><input type="radio" name="q1" value="5" data-qkey="P6_Q1"></label></td>
-        </tr>
-        <tr>
-          <td>재미있다.</td>
-          <td><label><input type="radio" name="q2" value="1" data-qkey="P6_Q2"></label></td>
-          <td><label><input type="radio" name="q2" value="2" data-qkey="P6_Q2"></label></td>
-          <td><label><input type="radio" name="q2" value="3" data-qkey="P6_Q2"></label></td>
-          <td><label><input type="radio" name="q2" value="4" data-qkey="P6_Q2"></label></td>
-          <td><label><input type="radio" name="q2" value="5" data-qkey="P6_Q2"></label></td>
-        </tr>
-        <tr>
-          <td>농담조가 강하다.</td>
-          <td><label><input type="radio" name="q3" value="1" data-qkey="P6_Q3"></label></td>
-          <td><label><input type="radio" name="q3" value="2" data-qkey="P6_Q3"></label></td>
-          <td><label><input type="radio" name="q3" value="3" data-qkey="P6_Q3"></label></td>
-          <td><label><input type="radio" name="q3" value="4" data-qkey="P6_Q3"></label></td>
-          <td><label><input type="radio" name="q3" value="5" data-qkey="P6_Q3"></label></td>
-        </tr>
-      </tbody>
-    </table>
-    <div class="btn-area">
-      <button id="nextBtn" type="button" class="btn" disabled>다음</button>
+  <section class="card">
+    <div class="help">각 문항에 대해 1(전혀 그렇지 않다) ~ 5(매우 그렇다) 중 하나를 선택해 주세요.</div>
+
+    <div class="card">
+      <div class="qtitle">1) 웃기다.</div>
+      <div class="scale" data-name="q1" data-qkey="P6_Q1"></div>
     </div>
-  </form>
+
+    <div class="card">
+      <div class="qtitle">2) 재미있다.</div>
+      <div class="scale" data-name="q2" data-qkey="P6_Q2"></div>
+    </div>
+
+    <div class="card">
+      <div class="qtitle">3) 농담조가 강하다.</div>
+      <div class="scale" data-name="q3" data-qkey="P6_Q3"></div>
+    </div>
+  </section>
+
+  <div class="btn-area">
+    <button id="nextBtn" type="button" class="btn" disabled>다음</button>
+  </div>
 </main>
 
 <script>
@@ -87,23 +71,32 @@ const NEXT_PAGE_URL = "page7.html";
 (function(){
   const qs = new URLSearchParams(location.search);
   const pid = qs.get('pid') || localStorage.getItem('exp_pid') || '';
-  const form = document.getElementById('form');
   const nextBtn = document.getElementById('nextBtn');
   let sending = false;
 
+  // 1) 1~5 칩 UI 자동 생성
+  document.querySelectorAll('.scale').forEach(scale=>{
+    const name = scale.dataset.name;
+    for(let v=1; v<=5; v++){
+      const lab = document.createElement('label');
+      lab.className = 'chip';
+      // 필요하면 라벨 텍스트(예: 1=전혀X, 5=매우O) 추가 가능
+      lab.innerHTML = `<input type="radio" name="${name}" value="${v}"><strong>${v}</strong>`;
+      scale.appendChild(lab);
+    }
+  });
+
   const REQUIRED = ['q1','q2','q3'];
-
   function allAnswered(){
-    return REQUIRED.every(name => form.querySelector(`input[name="${name}"]:checked`));
+    return REQUIRED.every(n => document.querySelector(`input[name="${n}"]:checked`));
   }
-  function refreshBtn(){
-    nextBtn.disabled = !allAnswered() || sending;
-  }
+  function refreshBtn(){ nextBtn.disabled = !allAnswered() || sending; }
 
-  // 라디오 변경마다 즉시 버튼 갱신
-  form.addEventListener('change', refreshBtn);
-  // 처음 로드시도 한 번 체크
-  refreshBtn();
+  // 이벤트 위임으로 변경 감지
+  document.addEventListener('change', (e)=>{
+    if (e.target && e.target.matches('input[type="radio"]')) refreshBtn();
+  });
+  refreshBtn(); // 초기 1회
 
   async function sessionUpsert(answers){
     const payload = { type:'SESSION_UPSERT', pid, page: PAGE, answers };
@@ -117,20 +110,19 @@ const NEXT_PAGE_URL = "page7.html";
 
   nextBtn.addEventListener('click', async ()=>{
     if (!allAnswered() || sending) return;
-    sending = true;
-    refreshBtn();
+    sending = true; refreshBtn();
 
-    // 최종 선택만 수집 (1~5 점수 문자열)
-    const qVal = name => form.querySelector(`input[name="${name}"]:checked`).value;
+    // 최종 선택만 수집
+    function valOf(name){ return document.querySelector(`input[name="${name}"]:checked`).value; }
     const answers = [
-      { key:'P6_Q1', value: qVal('q1') },
-      { key:'P6_Q2', value: qVal('q2') },
-      { key:'P6_Q3', value: qVal('q3') }
+      { key:'P6_Q1', value: valOf('q1') },
+      { key:'P6_Q2', value: valOf('q2') },
+      { key:'P6_Q3', value: valOf('q3') }
     ];
 
     try { await sessionUpsert(answers); } catch(e){ console.warn(e); }
 
-    // 다음 페이지 이동 (pid 유지)
+    // 다음 페이지로 이동 (pid 유지)
     const next = `${NEXT_PAGE_URL}?pid=${encodeURIComponent(pid)}`;
     location.href = next;
   });
