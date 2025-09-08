@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>실험 v2 · Page 9 (종속 변인 측정)</title>
 <style>
-  :root{--line:#e5e7eb;--pri:#2563eb;--bg:#f6f7f9}
+  :root{--line:#e5e7eb;--pri:#2563eb;--bg:#f6f7f9;--muted:#6b7280}
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,Arial,sans-serif;color:#111827;line-height:1.6}
   header{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--line);padding:12px;text-align:center;font-weight:700}
@@ -13,20 +13,49 @@
   h1{font-size:20px;margin:6px 0 18px}
   .card{background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.04);padding:16px;margin:14px 0}
   .qtitle{font-weight:700;margin-bottom:8px}
-  .help{font-size:12px;color:#6b7280;margin-bottom:8px}
-  .scale{display:flex;flex-wrap:wrap;gap:8px}
-  .chip{
-    display:flex;align-items:center;gap:6px;
-    border:1px solid var(--line);border-radius:999px;padding:8px 10px;cursor:pointer;
-    user-select:none;background:#fff
+  .help{font-size:12px;color:var(--muted);margin-bottom:8px}
+
+  /* 스케일: 한 줄 유지 + 필요 시 가로 스크롤 */
+  .scale{
+    display:flex; flex-wrap:nowrap; gap:8px;
+    overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none;
   }
-  .chip input{appearance:none;width:16px;height:16px;border:2px solid #9ca3af;border-radius:999px;display:inline-block}
-  .chip input:checked{border-color:#2563eb;background:#2563eb}
-  .chip strong{font-variant-numeric:tabular-nums}
+  .scale::-webkit-scrollbar{ display:none; }
+
+  /* 칩(블럭) */
+  label.chip{
+    position:relative; display:inline-flex; align-items:center;
+    border:1px solid var(--line); border-radius:999px;
+    padding:8px 10px; background:#fff; cursor:pointer; user-select:none;
+    white-space:nowrap; line-height:1; transition:background .15s, border-color .15s, box-shadow .15s;
+    font-size:14px;
+  }
+  /* 라디오는 보이지 않게(접근성 유지: 전체 칩 클릭) */
+  label.chip > input{
+    position:absolute; inset:0; opacity:0; width:100%; height:100%; margin:0; cursor:pointer;
+  }
+  label.chip strong{ font-variant-numeric:tabular-nums; font-weight:700 }
+  label.chip:hover{ background:#f9fafb }
+  label.chip:focus-within{ box-shadow:0 0 0 3px rgba(37,99,235,.2) }
+
+  /* 선택 상태 */
+  label.chip.selected{
+    background:#eef2ff;
+    border-color:#93c5fd;
+    box-shadow:inset 0 0 0 2px #2563eb;
+  }
+  label.chip.selected strong{ color:#1d4ed8 }
+
   .btn-area{text-align:center;margin-top:24px}
   .btn{border:none;border-radius:10px;padding:12px 20px;font-size:16px;background:var(--pri);color:#fff;font-weight:600;cursor:pointer}
   .btn:disabled{opacity:.5;cursor:not-allowed}
-  @media (max-width:640px){ .scale{gap:6px} .chip{padding:8px} }
+
+  @media (max-width:480px){
+    main{padding:12px}
+    .card{padding:12px}
+    .scale{gap:6px}
+    label.chip{padding:8px 9px;font-size:13.5px}
+  }
 </style>
 </head>
 <body>
@@ -94,7 +123,7 @@ const NEXT_PAGE_URL = "page10.html";
   const nextBtn = document.getElementById('nextBtn');
   let sending = false;
 
-  // 1) 1~7 칩 UI 자동 생성
+  // 1) 1~7 칩 생성
   document.querySelectorAll('.scale').forEach(scale=>{
     const name = scale.dataset.name;
     for(let v=1; v<=7; v++){
@@ -105,28 +134,43 @@ const NEXT_PAGE_URL = "page10.html";
     }
   });
 
-  // 2) 필수 이름 목록
-  const REQUIRED = ['s1_q1','s1_q2','s1_q3','s2_q1','s2_q2','s2_q3'];
+  // 2) 칩 선택 시 시각 상태(.selected) 토글
+  function refreshGroup(name){
+    document.querySelectorAll(`label.chip input[name="${name}"]`).forEach(r=>{
+      const lab = r.closest('label.chip');
+      if (!lab) return;
+      lab.classList.toggle('selected', r.checked);
+    });
+  }
+  function wireChipSelection(){
+    document.querySelectorAll('label.chip > input[type="radio"]').forEach(r=>{
+      refreshGroup(r.name); // 초기 반영
+      r.addEventListener('change', ()=>refreshGroup(r.name));
+    });
+  }
+  wireChipSelection();
 
+  // 3) 완료 체크
+  const REQUIRED = ['s1_q1','s1_q2','s1_q3','s2_q1','s2_q2','s2_q3'];
   function answeredAll(){
     return REQUIRED.every(n => document.querySelector(`input[name="${n}"]:checked`));
   }
   function refreshBtn(){ nextBtn.disabled = !answeredAll() || sending; }
 
-  // 이벤트 위임으로 변경 감지
+  // 변경 감지
   document.addEventListener('change', (e)=>{
     if (e.target && e.target.matches('input[type="radio"]')) refreshBtn();
   });
-  // 초기 1회 체크
   refreshBtn();
 
+  // 4) 수집/업서트/이동
   function collectAnswers(){
     const out = [];
     document.querySelectorAll('.scale').forEach(scale=>{
       const name = scale.dataset.name;
       const key  = scale.dataset.qkey;
-      const val  = (document.querySelector(`input[name="${name}"]:checked`) || {}).value;
-      if (val) out.push({ key, value: val });
+      const el   = document.querySelector(`input[name="${name}"]:checked`);
+      if (el) out.push({ key, value: el.value });
     });
     return out;
   }
@@ -135,7 +179,7 @@ const NEXT_PAGE_URL = "page10.html";
     const payload = { type:'SESSION_UPSERT', pid, page: PAGE, answers };
     const res = await fetch(API, {
       method: 'POST',
-      headers: { 'Content-Type':'text/plain' }, // 심플 요청 → preflight 없음
+      headers: { 'Content-Type':'text/plain' }, // 심플 요청(프리플라이트 방지)
       body: JSON.stringify(payload)
     });
     if (!res.ok) console.warn('SESSION_UPSERT failed:', res.status);
