@@ -56,16 +56,16 @@
 
 <script>
 /***** ▼ 설정 ▼ *****/
-const LOG_ENDPOINT = "https://script.google.com/macros/s/AKfycbzN8clzejkNSEy-SjAFmTOVPDXyPNFwE7PkTI5WVo_bGfuw5Iyuc6O9aSUwVHYctbLr/exec"; // Apps Script Web App URL
-const DURATION_SEC = 45; // 제시 시간(초)
-const NEXT_PAGE_URL = "page6.html"; // 45초 뒤 이동할 페이지
+const API = "https://script.google.com/macros/s/AKfycbzN8clzejkNSEy-SjAFmTOVPDXyPNFwE7PkTI5WVo_bGfuw5Iyuc6O9aSUwVHYctbLr/exec"; // GAS Web App
+const DURATION_SEC = 45;
+const NEXT_PAGE_URL = "page6.html";
 /***** ▲ 설정 끝 ▲ *****/
 
 (function(){
-  const startMs = performance.now();
-  const pid = localStorage.getItem('exp_pid') || new URLSearchParams(location.search).get('pid') || null;
+  const qs = new URLSearchParams(location.search);
+  const pid = qs.get('pid') || localStorage.getItem('exp_pid') || '';
 
-  // 두 버전 텍스트
+  // 자극 텍스트 (A/B)
   const A = {
     key: 'A',
     title: '정치병자들이 물에 빠졌다.txt',
@@ -104,56 +104,35 @@ const NEXT_PAGE_URL = "page6.html"; // 45초 뒤 이동할 페이지
 그냥 사라지는 게 답임.`
   };
 
-  // 무작위 배정
-  const variant = Math.random() < 0.5 ? A : B;
+  // 1) 자극 배정: 저장된 값 우선, 없으면 랜덤 → 저장
+  let variantKey = localStorage.getItem('stimulus_variant');
+  if (!variantKey) {
+    variantKey = Math.random() < 0.5 ? 'A' : 'B';
+    localStorage.setItem('stimulus_variant', variantKey);
+  }
+  const variant = variantKey === 'A' ? A : B;
+
+  // 2) 화면 반영
   document.getElementById('title').textContent = variant.title;
   document.getElementById('body').textContent = variant.body;
 
-  // 노출 지표 생성 (공유 > 좋아요 > 댓글 > 저장)
-  function genCounts(){
-    const save = 30 + Math.floor(Math.random()*71); // 저장 30~100
-    const comment = save + 20 + Math.floor(Math.random()*181); // 댓글 > 저장
-    const like = comment + 50 + Math.floor(Math.random()*601); // 좋아요 > 댓글
-    const share = Math.min(2000, like + 100 + Math.floor(Math.random()*901)); // 공유 > 좋아요, 최대 2000
+  // 3) 노출 지표(가짜) 생성
+  const counts = (()=>{
+    const save = 30 + Math.floor(Math.random()*71);
+    const comment = save + 20 + Math.floor(Math.random()*181);
+    const like = comment + 50 + Math.floor(Math.random()*601);
+    const share = Math.min(2000, like + 100 + Math.floor(Math.random()*901));
     return {share, like, comment, save};
-  }
-  const counts = genCounts();
-  document.getElementById('shareCnt').textContent = counts.share.toLocaleString();
-  document.getElementById('likeCnt').textContent = counts.like.toLocaleString();
+  })();
+  document.getElementById('shareCnt').textContent   = counts.share.toLocaleString();
+  document.getElementById('likeCnt').textContent    = counts.like.toLocaleString();
   document.getElementById('commentCnt').textContent = counts.comment.toLocaleString();
-  document.getElementById('saveCnt').textContent = counts.save.toLocaleString();
+  document.getElementById('saveCnt').textContent    = counts.save.toLocaleString();
 
-  async function log(type, detail){
-    const payload = {
-      type,
-      ts: new Date().toISOString(),
-      ms: Math.round(performance.now() - startMs),
-      pid,
-      url: location.href,
-      ua: navigator.userAgent,
-      detail
-    };
-    try {
-      await fetch(LOG_ENDPOINT, {
-        method: 'POST',
-        mode: 'no-cors',            // 프리플라이트 방지
-        // headers 제거! ('application/json' 쓰면 OPTIONS 발생)
-        body: JSON.stringify(payload)
-      });
-    } catch (e) {
-      try {
-        // Blob 불필요 — 문자열 그대로 전송
-        navigator.sendBeacon && navigator.sendBeacon(LOG_ENDPOINT, JSON.stringify(payload));
-      } catch (_) {}
-    }
-  }
+  // 4) 배정 정보 세션에 기록(연구자가 확인 가능)
+  sessionUpsert([{ key: 'P5_VARIANT', value: variant.key }]).catch(console.warn);
 
-  // 배정 로그 & 저장
-  localStorage.setItem('stimulus_variant', variant.key);
-  log('stimulus_assign', { variant: variant.key });
-  log('page_load', { page:5, variant: variant.key });
-
-  // 카운트다운 & 진행바
+  // 5) 45초 타이머
   const secEl = document.getElementById('sec');
   const barEl = document.getElementById('bar');
   let left = DURATION_SEC;
@@ -161,26 +140,41 @@ const NEXT_PAGE_URL = "page6.html"; // 45초 뒤 이동할 페이지
   barEl.style.width = '0%';
 
   const tick = setInterval(()=>{
-    left -= 1;
-    if(left < 0){ left = 0; }
+    left = Math.max(0, left - 1);
     secEl.textContent = left;
-    const progress = ((DURATION_SEC - left)/DURATION_SEC)*100;
-    barEl.style.width = progress + '%';
-    if(left === 0){ clearInterval(tick); redirect(); }
+    barEl.style.width = ((DURATION_SEC - left)/DURATION_SEC)*100 + '%';
+    if (left === 0) { clearInterval(tick); redirect(); }
   }, 1000);
-
-  const hard = setTimeout(()=>{ redirect(); }, DURATION_SEC*1000 + 250);
+  const hard = setTimeout(redirect, DURATION_SEC*1000 + 250);
 
   async function redirect(){
     clearTimeout(hard);
-    await log('stimulus_timeout_redirect', { variant: variant.key, shown_sec: DURATION_SEC });
-    location.href = NEXT_PAGE_URL + (pid?`?pid=${encodeURIComponent(pid)}`:'');
+    // (선택) 종료 시점 메타만 갱신
+    try { await sessionUpsert([]); } catch(e) {}
+    location.href = `${NEXT_PAGE_URL}?pid=${encodeURIComponent(pid)}`;
   }
 
-  document.addEventListener('visibilitychange', ()=>{
-    log(document.visibilityState==='hidden'?'page_hidden':'page_visible', { page:5 });
-  });
+  // (선택) 페이지 숨김/표시 이벤트를 남기고 싶으면 아래처럼 메타 갱신만 호출
+  // document.addEventListener('visibilitychange', ()=>{
+  //   sessionUpsert([]).catch(()=>{});
+  // });
+
+  // ---- 공통 업서트 ----
+  async function sessionUpsert(answers){
+    const payload = {
+      type: 'SESSION_UPSERT',
+      pid,
+      page: 5,
+      answers // 예: [{ key:'P5_VARIANT', value:'A' }]
+    };
+    await fetch(API, {
+      method: 'POST',
+      headers: { 'Content-Type':'text/plain' }, // 심플 요청
+      body: JSON.stringify(payload)
+    });
+  }
 })();
 </script>
 </body>
 </html>
+
