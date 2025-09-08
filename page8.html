@@ -41,9 +41,14 @@
 </div>
 
 <script>
-const LOG_ENDPOINT = "https://script.google.com/macros/s/AKfycbzN8clzejkNSEy-SjAFmTOVPDXyPNFwE7PkTI5WVo_bGfuw5Iyuc6O9aSUwVHYctbLr/exec";
+/***** ▼ 설정 ▼ *****/
+const API = "https://script.google.com/macros/s/AKfycbzN8clzejkNSEy-SjAFmTOVPDXyPNFwE7PkTI5WVo_bGfuw5Iyuc6O9aSUwVHYctbLr/exec";
+const PAGE = 8;
 const NEXT_PAGE_URL = "page9.html";
 const DISPLAY_MS = 45000; // 45초
+// 이 페이지 자극 식별자(분석용 열 이름 값)
+const STIM_KEY = "P8_POST_1";
+/***** ▲ 설정 끝 ▲ *****/
 
 const text = `정신질환자들은 솔직히 사회에서는 짐이지.
 약 먹으면서도 일도 제대로 못하고, 주변 사람까지 힘들게 만드니까.
@@ -59,53 +64,30 @@ const text = `정신질환자들은 솔직히 사회에서는 짐이지.
 아무리 본인이 원하지 않아도 피해를 주는데 어떻게 해서라도 병동 입원시켜야지.`;
 
 (function(){
-  const startMs = performance.now();
-  const pid = localStorage.getItem('exp_pid') || new URLSearchParams(location.search).get('pid') || null;
+  const qs = new URLSearchParams(location.search);
+  const pid = qs.get('pid') || localStorage.getItem('exp_pid') || '';
   document.getElementById('body').textContent = text;
 
-  // 노출형 지표 생성 (공유>좋아요>댓글>저장, 저장 최소 30, 공유 최대 2000)
-  function genCounts(){
-    const save = 30 + Math.floor(Math.random()*21); // 30~50
+  // 노출형 지표(더미)
+  const counts = (() => {
+    const save = 30 + Math.floor(Math.random()*21);
     const comment = save + Math.floor(Math.random()*100);
     const like = comment + Math.floor(Math.random()*300);
     const share = Math.min(2000, like + Math.floor(Math.random()*500));
     return {share, like, comment, save};
-  }
-  const counts = genCounts();
+  })();
   document.getElementById('shareCnt').textContent = counts.share.toLocaleString();
   document.getElementById('likeCnt').textContent = counts.like.toLocaleString();
   document.getElementById('commentCnt').textContent = counts.comment.toLocaleString();
   document.getElementById('saveCnt').textContent = counts.save.toLocaleString();
 
-  async function log(type, detail){
-    const payload = {
-      type,
-      ts: new Date().toISOString(),
-      ms: Math.round(performance.now() - startMs),
-      pid,
-      url: location.href,
-      ua: navigator.userAgent,
-      detail
-    };
-    try {
-      await fetch(LOG_ENDPOINT, {
-        method: 'POST',
-        mode: 'no-cors',            // 프리플라이트 방지
-        // headers 제거! ('application/json' 쓰면 OPTIONS 발생)
-        body: JSON.stringify(payload)
-      });
-    } catch (e) {
-      try {
-        // Blob 불필요 — 문자열 그대로 전송
-        navigator.sendBeacon && navigator.sendBeacon(LOG_ENDPOINT, JSON.stringify(payload));
-      } catch (_) {}
-    }
-  }
+  // 자극 제시 사실 기록(세션 업서트) — 연구자가 어떤 자극을 봤는지 확인 가능
+  sessionUpsert([
+    { key: 'P8_STIM_KEY', value: STIM_KEY },
+    { key: 'P8_SHOWN_MS', value: String(DISPLAY_MS) }
+  ]).catch(console.warn);
 
-  // 페이지 로드 로그 (이 파일이 Page 8이면 8 유지)
-  log('page_load', { page: 8 });
-
-  // 타이머 진행바
+  // 타이머/진행바
   const bar = document.getElementById('bar');
   let elapsed = 0;
   const interval = setInterval(()=>{
@@ -113,10 +95,25 @@ const text = `정신질환자들은 솔직히 사회에서는 짐이지.
     bar.style.width = Math.min(100, (elapsed / DISPLAY_MS) * 100) + "%";
     if (elapsed >= DISPLAY_MS) {
       clearInterval(interval);
-      log('stimulus_timeout_redirect', {});
-      location.href = NEXT_PAGE_URL + (pid ? `?pid=${encodeURIComponent(pid)}` : '');
+      redirect();
     }
   }, 1000);
+
+  async function redirect(){
+    try { await sessionUpsert([]); } catch(e){}
+    const next = `${NEXT_PAGE_URL}?pid=${encodeURIComponent(pid)}`;
+    location.href = next;
+  }
+
+  // 공통 업서트
+  async function sessionUpsert(answers){
+    const payload = { type:'SESSION_UPSERT', pid, page: PAGE, answers };
+    await fetch(API, {
+      method: 'POST',
+      headers: { 'Content-Type':'text/plain' }, // 심플 요청 → preflight 없음
+      body: JSON.stringify(payload)
+    });
+  }
 })();
 </script>
 </body>
