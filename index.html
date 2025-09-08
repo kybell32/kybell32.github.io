@@ -6,7 +6,6 @@
   <title>실험 시작</title>
   <script>
     (function(){
-      // URL의 pid 파라미터가 있으면 유지
       const qs = new URLSearchParams(location.search);
       const pid = qs.get('pid') || localStorage.getItem('exp_pid');
       const next = 'page1.html' + (pid ? ('?pid=' + encodeURIComponent(pid)) : '');
