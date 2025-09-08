@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>실험 v2 · Page 7 (설문 단계)</title>
 <style>
-  :root{--line:#e5e7eb;--pri:#2563eb;--bg:#f6f7f9}
+  :root{--line:#e5e7eb;--pri:#2563eb;--bg:#f6f7f9;--muted:#6b7280}
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,Arial,sans-serif;color:#111827;line-height:1.6}
   header{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--line);padding:12px;text-align:center;font-weight:700}
@@ -14,22 +14,53 @@
   .section{margin:14px 0 28px}
   .card{background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.04);padding:16px}
   .title{font-weight:700;margin:0 0 6px}
-  .help{font-size:12px;color:#6b7280;margin:0 0 10px}
+  .help{font-size:12px;color:var(--muted);margin:0 0 10px}
   .q{border:1px solid var(--line);border-radius:12px;padding:14px;margin-top:12px}
   .qname{font-weight:700;margin-bottom:8px}
-  .scale{display:flex;flex-wrap:wrap;gap:8px}
-  .chip{
-    display:flex;align-items:center;gap:6px;
-    border:1px solid var(--line);border-radius:999px;padding:8px 10px;cursor:pointer;
-    user-select:none;background:#fff
+
+  /* 칩 스케일: 한 줄 유지 + 필요 시 가로 스크롤 */
+  .scale{
+    display:flex; flex-wrap:nowrap; gap:8px;
+    overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none;
   }
-  .chip input{appearance:none;width:16px;height:16px;border:2px solid #9ca3af;border-radius:999px;display:inline-block}
-  .chip input:checked{border-color:#2563eb;background:#2563eb}
-  .chip strong{font-variant-numeric:tabular-nums}
+  .scale::-webkit-scrollbar{ display:none; }
+
+  /* 칩(블럭) */
+  label.chip{
+    position:relative; display:inline-flex; align-items:center;
+    border:1px solid var(--line); border-radius:999px;
+    padding:8px 10px; background:#fff; cursor:pointer; user-select:none;
+    white-space:nowrap; line-height:1; transition:background .15s, border-color .15s, box-shadow .15s;
+    font-size:14px;
+  }
+  /* 라디오 자체는 보이지 않게(접근성 유지 위해 칩 전체 클릭 가능) */
+  label.chip > input{
+    position:absolute; inset:0; opacity:0; width:100%; height:100%; margin:0; cursor:pointer;
+  }
+  label.chip strong{ font-variant-numeric:tabular-nums; font-weight:700 }
+  label.chip:hover{ background:#f9fafb }
+  label.chip:focus-within{ box-shadow:0 0 0 3px rgba(37,99,235,.2) }
+
+  /* 선택 상태 */
+  label.chip.selected{
+    background:#eef2ff;
+    border-color:#93c5fd;
+    box-shadow:inset 0 0 0 2px #2563eb;
+  }
+  label.chip.selected strong{ color:#1d4ed8 }
+
   .btn-area{text-align:center;margin-top:24px}
   .btn{border:none;border-radius:10px;padding:12px 20px;font-size:16px;background:#2563eb;color:#fff;font-weight:600;cursor:pointer}
   .btn:disabled{opacity:.5;cursor:not-allowed}
-  @media (max-width:640px){ .scale{gap:6px} .chip{padding:8px} }
+
+  /* 모바일(아주 좁은 화면)에서 패딩/간격 살짝 축소 */
+  @media (max-width:480px){
+    main{padding:12px}
+    .card{padding:12px}
+    .q{padding:12px}
+    .scale{gap:6px}
+    label.chip{padding:8px 9px;font-size:13.5px}
+  }
 </style>
 </head>
 <body>
@@ -76,7 +107,7 @@ const PAGE = 7;
 const NEXT_PAGE_URL = "page8.html";
 /***** ▲ 설정 끝 ▲ *****/
 
-// 문항 정의(텍스트, name, 저장키, 척도)
+/* 문항 정의(텍스트, name, 저장키, 척도) */
 const SEC1 = [
   ["소셜 미디어에 대해 생각하거나 사용계획을 세우는 데 많은 시간을 보냈습니까?", "s1_q1", "P7_S1_Q1", 5],
   ["소셜 미디어를 점점 더 많이 하고 싶다는 충동을 느꼈습니까?",           "s1_q2", "P7_S1_Q2", 5],
@@ -147,6 +178,22 @@ const SEC3 = [
     }
   });
 
+  // 칩 선택 스타일(.selected) 토글
+  function refreshGroup(name){
+    document.querySelectorAll(`label.chip input[name="${name}"]`).forEach(r=>{
+      const lab = r.closest('label.chip');
+      if (!lab) return;
+      lab.classList.toggle('selected', r.checked);
+    });
+  }
+  function wireChipSelection(){
+    document.querySelectorAll('label.chip > input[type="radio"]').forEach(r=>{
+      refreshGroup(r.name); // 초기 반영
+      r.addEventListener('change', ()=>refreshGroup(r.name));
+    });
+  }
+  wireChipSelection();
+
   // 필수 응답 name 자동 수집
   const REQUIRED = [...document.querySelectorAll('.scale')].map(el=>el.dataset.name);
 
@@ -159,15 +206,15 @@ const SEC3 = [
   document.addEventListener('change', (e)=>{
     if (e.target && e.target.matches('input[type="radio"]')) refreshBtn();
   });
-  refreshBtn(); // 초기 한번
+  refreshBtn(); // 초기 1회
 
   function collectAnswers(){
     const out = [];
     document.querySelectorAll('.scale').forEach(scale=>{
       const name = scale.dataset.name;
       const key  = scale.dataset.qkey;
-      const val  = (document.querySelector(`input[name="${name}"]:checked`)||{}).value;
-      if (val) out.push({ key, value: val });
+      const el   = document.querySelector(`input[name="${name}"]:checked`);
+      if (el) out.push({ key, value: el.value });
     });
     return out;
   }
@@ -176,7 +223,7 @@ const SEC3 = [
     const payload = { type:'SESSION_UPSERT', pid, page: PAGE, answers };
     const res = await fetch(API, {
       method: 'POST',
-      headers: { 'Content-Type':'text/plain' }, // 심플 요청 → preflight 없음
+      headers: { 'Content-Type':'text/plain' }, // 심플 요청(preflight 방지)
       body: JSON.stringify(payload)
     });
     if (!res.ok) console.warn('SESSION_UPSERT failed:', res.status);
