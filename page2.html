@@ -45,43 +45,43 @@
 </main>
 
 <script>
-const LOG_ENDPOINT = "https://script.google.com/macros/s/AKfycbzN8clzejkNSEy-SjAFmTOVPDXyPNFwE7PkTI5WVo_bGfuw5Iyuc6O9aSUwVHYctbLr/exec"; // 구글 앱스 스크립트 URL
-const NEXT_PAGE_URL = "page3.html"; // 다음 페이지 파일명
+const API = "https://script.google.com/macros/s/AKfycbzN8clzejkNSEy-SjAFmTOVPDXyPNFwE7PkTI5WVo_bGfuw5Iyuc6O9aSUwVHYctbLr/exec"; // 동일한 GAS URL
+const PAGE = 2;
+const NEXT_PAGE_URL = "page3.html";
 
 (function(){
-  const startMs = performance.now();
-  const pid = localStorage.getItem('exp_pid') || new URLSearchParams(location.search).get('pid') || null;
+  const qs = new URLSearchParams(location.search);
+  const pid = qs.get('pid') || localStorage.getItem('exp_pid') || '';
+  const nextBtn = document.getElementById('nextBtn');
+  let sending = false;
 
-  async function log(type, detail){
+  async function sessionUpsert() {
     const payload = {
-      type,
-      ts: new Date().toISOString(),
-      ms: Math.round(performance.now() - startMs),
+      type: 'SESSION_UPSERT',
       pid,
-      url: location.href,
-      ua: navigator.userAgent,
-      detail
+      page: PAGE,
+      answers: [] // 응답 없음 → 메타만 갱신(업데이트 시간, last_page, pages_submitted)
     };
-    try {
-      await fetch(LOG_ENDPOINT, {
-        method: 'POST',
-        mode: 'no-cors',            // 프리플라이트 방지
-        // headers 제거! ('application/json' 쓰면 OPTIONS 발생)
-        body: JSON.stringify(payload)
-      });
-    } catch (e) {
-      try {
-        // Blob 불필요 — 문자열 그대로 전송
-        navigator.sendBeacon && navigator.sendBeacon(LOG_ENDPOINT, JSON.stringify(payload));
-      } catch (_) {}
-    }
+    const res = await fetch(API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' }, // 심플요청, preflight 없음
+      body: JSON.stringify(payload)
+    });
+    // 실패해도 진행은 가능하게 (원하면 강제 중단 처리해도 됨)
+    if (!res.ok) console.warn('SESSION_UPSERT failed:', res.status);
   }
-  
-  log('page_load',{page:2});
 
-  document.getElementById('nextBtn').addEventListener('click', async ()=>{
-    await log('page2_next',{});
-    location.href = NEXT_PAGE_URL + (pid?`?pid=${encodeURIComponent(pid)}`:'');
+  nextBtn.addEventListener('click', async () => {
+    if (sending) return;
+    sending = true;
+    nextBtn.disabled = true;
+    try {
+      await sessionUpsert(); // 페이지2 확정 시점에서만 1회 기록
+    } catch (e) {
+      console.warn(e);
+    }
+    const next = `${NEXT_PAGE_URL}?pid=${encodeURIComponent(pid)}`;
+    location.href = next;
   });
 })();
 </script>
