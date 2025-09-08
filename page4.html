@@ -14,6 +14,7 @@
   p{margin:8px 0;color:#374151}
   .muted{color:var(--muted);font-size:13px}
   .btn{border:none;border-radius:10px;padding:12px 16px;background:var(--pri);color:#fff;font-weight:700;cursor:pointer;margin-top:14px}
+  .btn:disabled{opacity:.6;cursor:not-allowed}
 </style>
 </head>
 <body>
@@ -26,47 +27,42 @@
 
 <script>
 /***** ▼ 설정 ▼ *****/
-const LOG_ENDPOINT = "https://script.google.com/macros/s/AKfycbzN8clzejkNSEy-SjAFmTOVPDXyPNFwE7PkTI5WVo_bGfuw5Iyuc6O9aSUwVHYctbLr/exec"; // Apps Script Web App URL
-const NEXT_PAGE_URL = "page5.html"; // 다음 페이지(자극물 실제 제시)
+const API = "https://script.google.com/macros/s/AKfycbzN8clzejkNSEy-SjAFmTOVPDXyPNFwE7PkTI5WVo_bGfuw5Iyuc6O9aSUwVHYctbLr/exec";
+const PAGE = 4;
+const NEXT_PAGE_URL = "page5.html";
 /***** ▲ 설정 끝 ▲ *****/
 
 (function(){
-  const startMs = performance.now();
-  const pid = localStorage.getItem('exp_pid') || new URLSearchParams(location.search).get('pid') || null;
+  const qs = new URLSearchParams(location.search);
+  const pid = qs.get('pid') || localStorage.getItem('exp_pid') || '';
   const go = document.getElementById('go');
+  let sending = false;
 
-  async function log(type, detail){
+  async function sessionUpsert() {
     const payload = {
-      type,
-      ts: new Date().toISOString(),
-      ms: Math.round(performance.now() - startMs),
+      type: 'SESSION_UPSERT',
       pid,
-      url: location.href,
-      ua: navigator.userAgent,
-      detail
+      page: PAGE,
+      answers: [] // 수집값 없음 → 메타만 갱신 (updated_at, last_page, pages_submitted)
     };
-    try {
-      await fetch(LOG_ENDPOINT, {
-        method: 'POST',
-        mode: 'no-cors',            // 프리플라이트 방지
-        // headers 제거! ('application/json' 쓰면 OPTIONS 발생)
-        body: JSON.stringify(payload)
-      });
-    } catch (e) {
-      try {
-        // Blob 불필요 — 문자열 그대로 전송
-        navigator.sendBeacon && navigator.sendBeacon(LOG_ENDPOINT, JSON.stringify(payload));
-      } catch (_) {}
-    }
+    const res = await fetch(API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' }, // 심플 요청 → preflight 없음
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) console.warn('SESSION_UPSERT failed:', res.status);
   }
 
-  log('page_load',{page:4});
-
   go.addEventListener('click', async ()=>{
-    await log('stimulus_intro_next',{});
-    location.href = NEXT_PAGE_URL + (pid?`?pid=${encodeURIComponent(pid)}`:'');
+    if (sending) return;
+    sending = true;
+    go.disabled = true;
+    try { await sessionUpsert(); } catch(e) { console.warn(e); }
+    const next = `${NEXT_PAGE_URL}?pid=${encodeURIComponent(pid)}`;
+    location.href = next;
   });
 })();
 </script>
 </body>
 </html>
+
