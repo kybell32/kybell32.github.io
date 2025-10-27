@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>소셜 미디어 연구_p5 </title>
+<title>소셜 미디어 연구_p5</title>
 <style>
   :root{--bg:#f6f7f9;--card:#fff;--line:#e5e7eb;--pri:#2563eb;--muted:#6b7280}
   *{box-sizing:border-box}
@@ -56,7 +56,7 @@
 
 <script>
 /***** ▼ 설정 ▼ *****/
-const API = "https://script.google.com/macros/s/AKfycbxhI7GJJI2jebIWhxr_3nkvvYStEtzNjFZpUuIezsnNKd7G1Mf8emvyrW_AJUsZNg2U/exec"; // GAS Web App
+const API = "https://script.google.com/macros/s/AKfycbxhI7GJJI2jebIWhxr_3nkvvYStEtzNjFZpUuIezsnNKd7G1Mf8emvyrW_AJUsZNg2U/exec";
 const DURATION_SEC = 45;
 const NEXT_PAGE_URL = "page6.html";
 /***** ▲ 설정 끝 ▲ *****/
@@ -64,12 +64,14 @@ const NEXT_PAGE_URL = "page6.html";
 (function(){
   const qs = new URLSearchParams(location.search);
   const pid = qs.get('pid') || localStorage.getItem('exp_pid') || '';
+  if (!pid) console.warn("pid가 비어 있습니다. 로그 기록 불가!");
 
   // 자극 텍스트 (A/B)
-  const A = {
-    key: 'A',
-    title: '정치병자들이 물에 빠졌다.txt',
-    body: `정치병자들이 물에 빠졌다.
+  const stimuli = {
+    A: {
+      key: 'A',
+      title: '정치병자들이 물에 빠졌다.txt',
+      body: `정치병자들이 물에 빠졌다.
 어떤 사람이 재빨리 달려가 한 가지 질문을 하고는 다시 돌아갔다.
 
 그 장면을 목격한 지나가던 행인이 이상하게 생각하여
@@ -83,12 +85,11 @@ const NEXT_PAGE_URL = "page6.html";
 
 그 말을 들은 행인이 고개를 끄덕이며 가던 길을 계속 갔다.
 그리고 세상은 조용해졌다.`
-  };
-
-  const B = {
-    key: 'B',
-    title: '정치병자들은 답이 없다.',
-    body: `정치병자들은 답이 없다.
+    },
+    B: {
+      key: 'B',
+      title: '정치병자들은 답이 없다.',
+      body: `정치병자들은 답이 없다.
 말도 안 통하고 그냥 사회의 악임.
 
 진보 정치병자들한테 조금이라도 보수 입장으로 얘기하면
@@ -99,40 +100,58 @@ const NEXT_PAGE_URL = "page6.html";
 
 진짜 아무 맥락 없이 정치로 시작해서 정치로 끝나는 얘기만 하고, 뭐만 하면 프레임 씌우면서 그 정치적 틀에서만 생각을 함. 맨날 좌우 갈라치기로 과몰입 하는데 지들이 상대 진영 탓하는 거 들어보면 망상 장애 그 자체임. 보고 싶은 것만 보고 듣고 싶은 것만 듣고, 어디서 이상한 유튜브 보고 그게 사실이라고 믿는 게 정상적인 지능이냐고..
 
-
 정치병은 약도 안 통하고 못 고친다..
 그냥 사라지는 게 답임.`
+    }
   };
 
-  // 1) 자극 배정: 저장된 값 우선, 없으면 랜덤 → 저장
+  // 1) 자극 배정
   let variantKey = localStorage.getItem('stimulus_variant');
   if (!variantKey) {
     variantKey = Math.random() < 0.5 ? 'A' : 'B';
     localStorage.setItem('stimulus_variant', variantKey);
   }
-  const variant = variantKey === 'A' ? A : B;
+  const variant = stimuli[variantKey];
 
   // 2) 화면 반영
   document.getElementById('title').textContent = variant.title;
   document.getElementById('body').textContent = variant.body;
 
   // 3) 노출 지표(가짜) 생성
-  const counts = (()=>{
+  const counts = (() => {
     const save = 30 + Math.floor(Math.random()*71);
     const comment = save + 20 + Math.floor(Math.random()*181);
     const like = comment + 50 + Math.floor(Math.random()*601);
     const share = Math.min(2000, like + 100 + Math.floor(Math.random()*901));
     return {share, like, comment, save};
   })();
-  document.getElementById('shareCnt').textContent   = counts.share.toLocaleString();
-  document.getElementById('likeCnt').textContent    = counts.like.toLocaleString();
+  document.getElementById('shareCnt').textContent = counts.share.toLocaleString();
+  document.getElementById('likeCnt').textContent = counts.like.toLocaleString();
   document.getElementById('commentCnt').textContent = counts.comment.toLocaleString();
-  document.getElementById('saveCnt').textContent    = counts.save.toLocaleString();
+  document.getElementById('saveCnt').textContent = counts.save.toLocaleString();
 
-  // 4) 배정 정보 세션에 기록(연구자가 확인 가능)
-  sessionUpsert([{ key: 'P5_VARIANT', value: variant.key }]).catch(console.warn);
+  // 4) sessionUpsert 함수
+  async function sessionUpsert(answers){
+    if (!pid) return; // pid 없으면 기록 불가
+    const payload = { type: 'SESSION_UPSERT', pid, page: 5, answers };
+    await fetch(API, {
+      method: 'POST',
+      headers: { 'Content-Type':'text/plain' },
+      body: JSON.stringify(payload)
+    });
+  }
 
-  // 5) 45초 타이머
+  // 5) 랜덤 자극 기록 + 안전한 redirect
+  async function logVariantAndRedirect(){
+    try {
+      await sessionUpsert([{ key: 'P5_VARIANT', value: variant.key }]);
+    } catch(e) {
+      console.warn("로그 기록 실패:", e);
+    }
+    location.href = `${NEXT_PAGE_URL}?pid=${encodeURIComponent(pid)}`;
+  }
+
+  // 6) 45초 타이머
   const secEl = document.getElementById('sec');
   const barEl = document.getElementById('bar');
   let left = DURATION_SEC;
@@ -143,38 +162,16 @@ const NEXT_PAGE_URL = "page6.html";
     left = Math.max(0, left - 1);
     secEl.textContent = left;
     barEl.style.width = ((DURATION_SEC - left)/DURATION_SEC)*100 + '%';
-    if (left === 0) { clearInterval(tick); redirect(); }
+    if (left === 0) {
+      clearInterval(tick);
+      logVariantAndRedirect();
+    }
   }, 1000);
-  const hard = setTimeout(redirect, DURATION_SEC*1000 + 250);
 
-  async function redirect(){
-    clearTimeout(hard);
-    // (선택) 종료 시점 메타만 갱신
-    try { await sessionUpsert([]); } catch(e) {}
-    location.href = `${NEXT_PAGE_URL}?pid=${encodeURIComponent(pid)}`;
-  }
+  // 혹시 45초 초과 안전장치
+  setTimeout(logVariantAndRedirect, DURATION_SEC*1000 + 500);
 
-  // (선택) 페이지 숨김/표시 이벤트를 남기고 싶으면 아래처럼 메타 갱신만 호출
-  // document.addEventListener('visibilitychange', ()=>{
-  //   sessionUpsert([]).catch(()=>{});
-  // });
-
-  // ---- 공통 업서트 ----
-  async function sessionUpsert(answers){
-    const payload = {
-      type: 'SESSION_UPSERT',
-      pid,
-      page: 5,
-      answers // 예: [{ key:'P5_VARIANT', value:'A' }]
-    };
-    await fetch(API, {
-      method: 'POST',
-      headers: { 'Content-Type':'text/plain' }, // 심플 요청
-      body: JSON.stringify(payload)
-    });
-  }
 })();
 </script>
 </body>
 </html>
-
