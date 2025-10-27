@@ -20,7 +20,34 @@
   input[type="text"]{border:1px solid var(--line);border-radius:10px;padding:8px 10px}
   .note{font-size:12px;color:var(--muted)}
   .contact{margin-top:10px;font-size:14px}
-  .footer{margin-top:18px;text-align:center}
+  /* 버튼 영역 & 디자인 (p6 스타일 적용) */
+  .footer {
+    margin-top: 20px;
+    text-align: center;
+  }
+
+  .btn {
+    border: none;
+    border-radius: 10px;
+    padding: 12px 18px;
+    font-size: 16px;
+    background: var(--pri);
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .2s, transform .1s;
+  }
+
+  .btn:hover:not(:disabled) {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+  }
+
+  .btn:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+  }
+
 </style>
 </head>
 <body>
