@@ -129,6 +129,10 @@ const NEXT_PAGE_URL = "page4.html";
   document.querySelectorAll('input[type="radio"]').forEach(el=>el.addEventListener('change', syncState));
   pname.addEventListener('input', syncState);
 
+// ✅ 초기 실행 (버튼 상태 한번 갱신)
+syncState();
+
+
  // ===== 저장(SESSION_UPSERT) & 이동 =====
   async function sessionUpsert(answers){
     const payload = { type:'SESSION_UPSERT', pid, page: PAGE, answers };
