@@ -79,7 +79,7 @@
           <span>연구자 성명: 남기연</span>
         </div>
       </div>
-
+      
       <div class="contact">
         ■ 연구담당자: 중앙대학교 석사과정 남기연 (TEL: 010-5001-2418, kybell@kakao.com)<br/>
         ■ 지도교수: 중앙대학교 심리학과 교수 현명호 (hyunmh@cau.ac.kr)<br/>
@@ -118,78 +118,23 @@ const NEXT_PAGE_URL = "page4.html";
   }
   function allYes(ans){ return ans.q1==='예' && ans.q2==='예' && ans.q3==='예' && ans.q4==='예'; }
 
-  // ===== 서명 캔버스 (DPR 스케일 + 히스토리 + 상태 동기화) =====
-  const canvas = document.getElementById('sig');
-  const ctx = canvas.getContext('2d');
-  let drawing=false, history=[], hasInk=false;
 
-  function sizeCanvas(){
-    // CSS 픽셀 기준 너비(최대 420px) → 장치픽셀로 배율 조정
-    const dpr = Math.max(1, window.devicePixelRatio || 1);
-    const cssW = Math.min(420, canvas.clientWidth || 420);
-    const cssH = Math.max(120, Math.round(cssW/3)); // 3:1 비율, 최소높이 120
-    canvas.width  = Math.round(cssW * dpr);
-    canvas.height = Math.round(cssH * dpr);
-    canvas.style.width  = cssW + 'px';
-    canvas.style.height = cssH + 'px';
-    ctx.setTransform(dpr,0,0,dpr,0,0);
-    ctx.lineWidth = 2; ctx.lineCap='round'; ctx.lineJoin='round';
-    // 리사이즈시 내용 초기화(간단화). 필요하면 리사이즈 전 snapshot 복원 가능.
-    if (history.length) { history = []; hasInk = false; }
-    syncState();
-  }
-  sizeCanvas();
-  window.addEventListener('resize', sizeCanvas);
-
-  function saveHistory(){
-    try { history.push(canvas.toDataURL('image/png')); if(history.length>30) history.shift(); } catch {}
-  }
-  function startDraw(x,y){ drawing=true; ctx.beginPath(); ctx.moveTo(x,y); }
-  function moveDraw(x,y){ if(!drawing) return; ctx.lineTo(x,y); ctx.stroke(); hasInk = true; }
-  function endDraw(){ if(!drawing) return; drawing=false; saveHistory(); syncState(); } // ← 여기서 즉시 버튼 상태 갱신!
-
-  function pos(e){
-    const r=canvas.getBoundingClientRect();
-    const clientX = e.touches && e.touches[0] ? e.touches[0].clientX : e.clientX;
-    const clientY = e.touches && e.touches[0] ? e.touches[0].clientY : e.clientY;
-    return {x: clientX - r.left, y: clientY - r.top};
-  }
-  canvas.addEventListener('mousedown',e=>{const p=pos(e); startDraw(p.x,p.y);});
-  canvas.addEventListener('mousemove',e=>{const p=pos(e); moveDraw(p.x,p.y);});
-  window.addEventListener('mouseup',endDraw,{passive:true});
-  canvas.addEventListener('touchstart',e=>{e.preventDefault(); const p=pos(e); startDraw(p.x,p.y);},{passive:false});
-  canvas.addEventListener('touchmove',e=>{e.preventDefault(); const p=pos(e); moveDraw(p.x,p.y);},{passive:false});
-  window.addEventListener('touchend',endDraw,{passive:true});
-
-  document.getElementById('clearSig').addEventListener('click',()=>{
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    history.length=0; hasInk=false; syncState();
-  });
-  document.getElementById('undoSig').addEventListener('click',()=>{
-    if(history.length===0){ ctx.clearRect(0,0,canvas.width,canvas.height); hasInk=false; return syncState(); }
-    const img = new Image();
-    const last = history.pop();
-    img.onload=()=>{ ctx.clearRect(0,0,canvas.width,canvas.height); ctx.drawImage(img,0,0); hasInk = history.length>0; syncState(); };
-    img.src=last;
-  });
-
-  // ===== 상태 동기화 =====
-  function hasSignature(){ return hasInk; }
+ // ===== 상태 동기화 =====
   function syncState(){
     const ans = getAnswers();
-    const ok = allYes(ans) && !!pname.value.trim() && hasSignature();
+    const ok = allYes(ans) && !!pname.value.trim();
     nextBtn.disabled = !ok;
   }
 
   document.querySelectorAll('input[type="radio"]').forEach(el=>el.addEventListener('change', syncState));
   pname.addEventListener('input', syncState);
 
-  // ===== 저장(SESSION_UPSERT) & 이동 =====
+ // ===== 저장(SESSION_UPSERT) & 이동 =====
   async function sessionUpsert(answers){
     const payload = { type:'SESSION_UPSERT', pid, page: PAGE, answers };
     const res = await fetch(API, {
       method:'POST',
-      headers:{ 'Content-Type':'text/plain' }, // 심플 요청(프리플라이트 없음)
+      headers:{ 'Content-Type':'text/plain' },
       body: JSON.stringify(payload)
     });
     if(!res.ok) console.warn('SESSION_UPSERT failed:', res.status);
@@ -197,17 +142,15 @@ const NEXT_PAGE_URL = "page4.html";
 
   nextBtn.addEventListener('click', async ()=>{
     const ans = getAnswers();
-    if(!allYes(ans)) return; // 방어
+    if(!allYes(ans)) return;
     const name = pname.value.trim();
-    const sigData = canvas.toDataURL('image/png'); // base64 PNG
 
     const answers = [
       { key:'P3_Q1', value: ans.q1 },
       { key:'P3_Q2', value: ans.q2 },
       { key:'P3_Q3', value: ans.q3 },
       { key:'P3_Q4', value: ans.q4 },
-      { key:'P3_NAME', value: name },
-      { key:'P3_SIGNATURE_PNG', value: sigData }
+      { key:'P3_NAME', value: name }
     ];
     try { await sessionUpsert(answers); } catch(e) { console.warn(e); }
 
