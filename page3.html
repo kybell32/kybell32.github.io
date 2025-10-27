@@ -1,11 +1,99 @@
-<button id="nextBtn" class="btn primary">다음</button>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>소셜 미디어 연구_p3</title>
+<style>
+  :root{--line:#e5e7eb;--pri:#2563eb;--muted:#6b7280}
+  *{box-sizing:border-box}
+  body{margin:0;background:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,Arial,sans-serif;color:#111827;line-height:1.6}
+  header{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--line);padding:12px;text-align:center;font-weight:700}
+  main{max-width:880px;margin:0 auto;padding:18px}
+  h1{font-size:20px;margin:6px 0 12px}
+  .card{border:1px solid var(--line);border-radius:12px;padding:16px}
+  .q{border-top:1px dashed var(--line);padding-top:12px;margin-top:12px}
+  .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  .field{display:flex;align-items:center;gap:8px}
+  .name-row{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-top:12px}
+  .name-field{display:flex;align-items:center;gap:8px}
+  input[type="text"]{border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+  .note{font-size:12px;color:var(--muted)}
+  .contact{margin-top:10px;font-size:14px}
+  .footer{margin-top:18px;text-align:center}
+</style>
+</head>
+<body>
+<header>연구 동의서</header>
+<main>
+  <section class="card">
+    <p>본인은 본 연구와 관련된 충분한 설명을 읽고 이해하였으며, 충분한 시간을 갖고 생각한 이후에 상기 연구에 참여하기를 자발적인 의사에 의하여 동의합니다. 본인은 설문에 응답하거나 과제를 수행하는 과정에서 도중에 그만두기를 원한다면 언제든지 그만둘 수 있다는 점을 이해하고, 이때는 관련된 정보가 모두 파기됨을 숙지하고 있습니다.</p>
+
+    <div class="q">
+      <div>1. 본인은 본 연구에 대한 설명을 이해하셨습니까?</div>
+      <div class="row" role="radiogroup" aria-label="문항1">
+        <label class="field"><input type="radio" name="q1" value="예"> 예</label>
+        <label class="field"><input type="radio" name="q1" value="아니오"> 아니오</label>
+      </div>
+    </div>
+
+    <div class="q">
+      <div>2. 본인은 연구의 위험과 이득에 대하여 이해하셨습니까?</div>
+      <div class="row" role="radiogroup" aria-label="문항2">
+        <label class="field"><input type="radio" name="q2" value="예"> 예</label>
+        <label class="field"><input type="radio" name="q2" value="아니오"> 아니오</label>
+      </div>
+    </div>
+
+    <div class="q">
+      <div>3. 본인은 연구 진행 중 언제든지 어떠한 불이익 없이 연구의 참여를 철회할 수 있음을 이해하셨습니까?</div>
+      <div class="row" role="radiogroup" aria-label="문항3">
+        <label class="field"><input type="radio" name="q3" value="예"> 예</label>
+        <label class="field"><input type="radio" name="q3" value="아니오"> 아니오</label>
+      </div>
+    </div>
+
+    <div class="q">
+      <div>4. 본인은 본 연구에 자발적인 의사에 의하여 참여하시겠습니까?</div>
+      <div class="row" role="radiogroup" aria-label="문항4">
+        <label class="field"><input type="radio" name="q4" value="예"> 예</label>
+        <label class="field"><input type="radio" name="q4" value="아니오"> 아니오</label>
+      </div>
+    </div>
+
+    <div class="q">
+      <div class="name-row">
+        <div class="name-field">
+          <label for="pname">참여자 성명:</label>
+          <input id="pname" type="text" placeholder="성명 입력" autocomplete="off" />
+        </div>
+        <div class="name-field">
+          <span>연구자 성명: 남기연</span>
+        </div>
+      </div>
+
+      <div class="contact">
+        ■ 연구담당자: 중앙대학교 석사과정 남기연 (TEL: 010-5001-2418, kybell@kakao.com)<br/>
+        ■ 지도교수: 중앙대학교 심리학과 교수 현명호 (hyunmh@cau.ac.kr)<br/>
+        중앙대학교 교양대학 교수 권영실<br/>
+        ■ 중앙대학교 생명윤리 위원회 (TEL: 02-820-6346, ethics@cau.ac.kr)
+      </div>
+    </div>
+
+    <div class="footer">
+      <button id="nextBtn" class="btn primary" disabled>다음</button>
+    </div>
+  </section>
+</main>
 
 <script>
-const API = "https://script.google.com/macros/s/AKfycbxhI7GJJI2jebIWhxr_3nkvvYStEtzNjFZpUuIezsnNKd7G1Mf8emvyrW_AJUsZNg2U/exec";
-const PAGE = 3;
-const NEXT_PAGE_URL = "page4.html";
+document.addEventListener('DOMContentLoaded', () => {
+  /***** ▼ 설정 ▼ *****/
+  const API = "https://script.google.com/macros/s/AKfycbxhI7GJJI2jebIWhxr_3nkvvYStEtzNjFZpUuIezsnNKd7G1Mf8emvyrW_AJUsZNg2U/exec";
+  const PAGE = 3;
+  const NEXT_PAGE_URL = "page4.html";
+  /***** ▲ 설정 끝 ▲ *****/
 
-(function(){
   const qs = new URLSearchParams(location.search);
   const pid = qs.get('pid') || localStorage.getItem('exp_pid') || '';
   const nextBtn = document.getElementById('nextBtn');
@@ -20,9 +108,7 @@ const NEXT_PAGE_URL = "page4.html";
     }
     return out;
   }
-  function allYes(ans){ 
-    return ['q1','q2','q3','q4'].every(k => (ans[k]||'').trim() === '예');
-  }
+  function allYes(ans){ return ans.q1==='예' && ans.q2==='예' && ans.q3==='예' && ans.q4==='예'; }
 
   function syncState(){
     const ans = getAnswers();
@@ -32,9 +118,6 @@ const NEXT_PAGE_URL = "page4.html";
 
   document.querySelectorAll('input[type="radio"]').forEach(el=>el.addEventListener('change', syncState));
   pname.addEventListener('input', syncState);
-
-  // ✅ 로드 직후 한 번 상태 동기화
-  syncState();
 
   async function sessionUpsert(answers){
     const payload = { type:'SESSION_UPSERT', pid, page: PAGE, answers };
@@ -63,6 +146,9 @@ const NEXT_PAGE_URL = "page4.html";
     const next = `${NEXT_PAGE_URL}?pid=${encodeURIComponent(pid)}`;
     location.href = next;
   });
-})();
+});
 </script>
+
+</body>
+</html>
 
