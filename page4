@@ -63,8 +63,8 @@
 <script>
 /***** 설정 *****/
 const API = "https://script.google.com/macros/s/AKfycbxhI7GJJI2jebIWhxr_3nkvvYStEtzNjFZpUuIezsnNKd7G1Mf8emvyrW_AJUsZNg2U/exec";
-const PAGE = "7a";
-const NEXT_PAGE_URL = "page7b.html";
+const PAGE = "4";
+const NEXT_PAGE_URL = "page5.html";
 
 /***** 문항 정의 *****/
 const SEC1 = [...]; // 원래 코드의 SEC1 그대로 복사
