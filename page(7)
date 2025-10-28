@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>소셜 미디어 연구_p7a</title>
+<style>
+  /* ✅ 스타일은 그대로 복사 */
+  :root{--line:#e5e7eb;--pri:#2563eb;--bg:#f6f7f9;--muted:#6b7280}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,Arial,sans-serif;color:#111827;line-height:1.6}
+  header{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--line);padding:12px;text-align:center;font-weight:700}
+  main{max-width:980px;margin:0 auto;padding:18px}
+  h1{font-size:20px;margin:6px 0 12px}
+  .section{margin:14px 0 28px}
+  .card{background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.04);padding:16px}
+  .title{font-weight:700;margin:0 0 6px}
+  .help{font-size:12px;color:var(--muted);margin:0 0 10px}
+  .q{border:1px solid var(--line);border-radius:12px;padding:14px;margin-top:12px}
+  .qname{font-weight:700;margin-bottom:8px}
+  .scale{display:flex;flex-wrap:nowrap;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+  .scale::-webkit-scrollbar{display:none;}
+  label.chip{position:relative;display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:999px;padding:8px 10px;background:#fff;cursor:pointer;user-select:none;white-space:nowrap;line-height:1;transition:background .15s,border-color .15s,box-shadow .15s;font-size:14px;}
+  label.chip>input{position:absolute;inset:0;opacity:0;width:100%;height:100%;margin:0;cursor:pointer;}
+  label.chip strong{font-variant-numeric:tabular-nums;font-weight:700}
+  label.chip:hover{background:#f9fafb}
+  label.chip:focus-within{box-shadow:0 0 0 3px rgba(37,99,235,.2)}
+  label.chip.selected{background:#eef2ff;border-color:#93c5fd;box-shadow:inset 0 0 0 2px #2563eb;}
+  label.chip.selected strong{color:#1d4ed8}
+  .btn-area{text-align:center;margin-top:24px}
+  .btn{border:none;border-radius:10px;padding:12px 20px;font-size:16px;background:#2563eb;color:#fff;font-weight:600;cursor:pointer}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+</style>
+</head>
+<body>
+<header>설문 (1/2)</header>
+<main>
+  <h1>아래 문항에 응답해 주세요. 모든 문항에 응답해야 다음으로 이동할 수 있습니다.</h1>
+
+  <!-- sec1 -->
+  <section class="section">
+    <div class="card">
+      <p class="title"><b>지난 2주 동안 소셜 미디어 사용</b>에 대해 자신과 일치하는 정도를 표시해 주십시오.</p>
+      <p class="help">1(매우 아니다) ~ 5(매우 그렇다)</p>
+      <div id="sec1"></div>
+    </div>
+  </section>
+
+  <!-- sec2 -->
+  <section class="section">
+    <div class="card">
+      <p class="title">제시된 문항을 읽고 동의하는 정도에 따라 표시해 주십시오.</p>
+      <p class="help">1(매우 아니다) ~ 5(매우 그렇다)</p>
+      <div id="sec2"></div>
+    </div>
+  </section>
+
+  <div class="btn-area">
+    <button id="nextBtn" class="btn" disabled>다음</button>
+  </div>
+</main>
+
+<script>
+/***** 설정 *****/
+const API = "https://script.google.com/macros/s/AKfycbxhI7GJJI2jebIWhxr_3nkvvYStEtzNjFZpUuIezsnNKd7G1Mf8emvyrW_AJUsZNg2U/exec";
+const PAGE = "7a";
+const NEXT_PAGE_URL = "page7b.html";
+
+/***** 문항 정의 *****/
+const SEC1 = [...]; // 원래 코드의 SEC1 그대로 복사
+const SEC2 = [...]; // 원래 코드의 SEC2 그대로 복사
+
+/* 이하 스크립트는 원래 코드 그대로 복사 — 단, sec3 관련 부분 제거 */
+(function(){
+  const qs = new URLSearchParams(location.search);
+  const pid = qs.get('pid') || localStorage.getItem('exp_pid') || '';
+  const nextBtn = document.getElementById('nextBtn');
+  let sending = false;
+
+  function renderSection(containerId, items){
+    const wrap = document.getElementById(containerId);
+    items.forEach(([text, name, qkey, scale])=>{
+      const q = document.createElement('div');
+      q.className = 'q';
+      q.innerHTML = `<div class="qname">${text}</div><div class="scale" data-name="${name}" data-qkey="${qkey}" data-scale="${scale}"></div>`;
+      wrap.appendChild(q);
+    });
+  }
+  renderSection('sec1', SEC1);
+  renderSection('sec2', SEC2);
+
+  document.querySelectorAll('.scale').forEach(scale=>{
+    const name = scale.dataset.name;
+    const max  = parseInt(scale.dataset.scale,10)||5;
+    for(let v=1;v<=max;v++){
+      const lab=document.createElement('label');
+      lab.className='chip';
+      lab.innerHTML=`<input type="radio" name="${name}" value="${v}"><strong>${v}</strong>`;
+      scale.appendChild(lab);
+    }
+  });
+
+  function refreshGroup(name){
+    document.querySelectorAll(`label.chip input[name="${name}"]`).forEach(r=>{
+      r.closest('label.chip').classList.toggle('selected',r.checked);
+    });
+  }
+  document.querySelectorAll('label.chip>input').forEach(r=>{
+    r.addEventListener('change',()=>refreshGroup(r.name));
+  });
+
+  const REQUIRED=[...document.querySelectorAll('.scale')].map(el=>el.dataset.name);
+  function answeredAll(){return REQUIRED.every(n=>document.querySelector(`input[name="${n}"]:checked`));}
+  function refreshBtn(){nextBtn.disabled=!answeredAll()||sending;}
+  document.addEventListener('change',refreshBtn);
+
+  async function sessionUpsert(answers){
+    const payload={type:'SESSION_UPSERT',pid,page:PAGE,answers};
+    await fetch(API,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)});
+  }
+
+  function collectAnswers(){
+    const out=[];
+    document.querySelectorAll('.scale').forEach(scale=>{
+      const name=scale.dataset.name, key=scale.dataset.qkey;
+      const el=document.querySelector(`input[name="${name}"]:checked`);
+      if(el) out.push({key,value:el.value});
+    });
+    return out;
+  }
+
+  nextBtn.addEventListener('click',async()=>{
+    if(!answeredAll()||sending)return;
+    sending=true;refreshBtn();
+    try{await sessionUpsert(collectAnswers());}catch(e){console.warn(e);}
+    location.href=`${NEXT_PAGE_URL}?pid=${encodeURIComponent(pid)}`;
+  });
+})();
+</script>
+</body>
+</html>
