@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>소셜 미디어 연구_p7a</title>
 <style>
-  /* ✅ 스타일은 그대로 복사 */
   :root{--line:#e5e7eb;--pri:#2563eb;--bg:#f6f7f9;--muted:#6b7280}
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,Arial,sans-serif;color:#111827;line-height:1.6}
@@ -37,7 +36,6 @@
 <main>
   <h1>아래 문항에 응답해 주세요. 모든 문항에 응답해야 다음으로 이동할 수 있습니다.</h1>
 
-  <!-- sec1 -->
   <section class="section">
     <div class="card">
       <p class="title"><b>지난 2주 동안 소셜 미디어 사용</b>에 대해 자신과 일치하는 정도를 표시해 주십시오.</p>
@@ -46,7 +44,6 @@
     </div>
   </section>
 
-  <!-- sec2 -->
   <section class="section">
     <div class="card">
       <p class="title">제시된 문항을 읽고 동의하는 정도에 따라 표시해 주십시오.</p>
@@ -61,33 +58,30 @@
 </main>
 
 <script>
-/***** 설정 *****/
 const API = "https://script.google.com/macros/s/AKfycbxhI7GJJI2jebIWhxr_3nkvvYStEtzNjFZpUuIezsnNKd7G1Mf8emvyrW_AJUsZNg2U/exec";
 const PAGE = "4";
 const NEXT_PAGE_URL = "page5.html";
 
-/***** 문항 정의 *****/
 const SEC1 = [
   ["소셜 미디어에 대해 생각하거나 사용계획을 세우는 데 많은 시간을 보냈습니까?", "s1_q1", "P7_S1_Q1", 5],
-  ["소셜 미디어를 점점 더 많이 하고 싶다는 충동을 느꼈습니까?",           "s1_q2", "P7_S1_Q2", 5],
-  ["개인적인 문제를 잊기 위해 소셜 미디어를 사용했습니까?",               "s1_q3", "P7_S1_Q3", 5],
-  ["소셜 미디어 사용을 줄이려고 시도했지만 성공하지 못했습니까?",           "s1_q4", "P7_S1_Q4", 5],
-  ["소셜 미디어를 사용하지 못하게 되면 안절부절 못하거나 괴로웠습니까?",     "s1_q5", "P7_S1_Q5", 5],
-  ["너무 많이 소셜 미디어를 사용해서 일이나 학업에 부정적인 영향이 있었습니까?","s1_q6","P7_S1_Q6", 5],
+  ["소셜 미디어를 점점 더 많이 하고 싶다는 충동을 느꼈습니까?", "s1_q2", "P7_S1_Q2", 5],
+  ["개인적인 문제를 잊기 위해 소셜 미디어를 사용했습니까?", "s1_q3", "P7_S1_Q3", 5],
+  ["소셜 미디어 사용을 줄이려고 시도했지만 성공하지 못했습니까?", "s1_q4", "P7_S1_Q4", 5],
+  ["소셜 미디어를 사용하지 못하게 되면 안절부절 못하거나 괴로웠습니까?", "s1_q5", "P7_S1_Q5", 5],
+  ["너무 많이 소셜 미디어를 사용해서 일이나 학업에 부정적인 영향이 있었습니까?", "s1_q6", "P7_S1_Q6", 5],
 ];
 
 const SEC2 = [
-  ["이상적인 사회에서 어떤 집단은 상위에 있고 다른 집단은 하위에 위치하는 것이 필요하다.", "s2_q1","P7_S2_Q1",5],
-  ["어떤 집단은 다른 집단에 비해 열등하다.",                                           "s2_q2","P7_S2_Q2",5],
-  ["어떤 집단도 사회에서 지배적이고 위치를 차지해서는 안 된다.",                       "s2_q3","P7_S2_Q3",5],
-  ["사회의 하위 그룹도 상위 그룹만큼 자격이 있다.",                                     "s2_q4","P7_S2_Q4",5],
-  ["집단 간 평등이 우리 사회의 주된 가치가 되어서는 안 된다.",                           "s2_q5","P7_S2_Q5",5],
-  ["집단들을 평등하게 만들려고 노력하는 것은 부당하다.",                                 "s2_q6","P7_S2_Q6",5],
-  ["우리는 다양한 집단의 조건을 평등하게 만들기 위해 할 수 있는 것을 해야 한다.",       "s2_q7","P7_S2_Q7",5],
-  ["모든 집단은 성공할 수 있는 동등한 기회를 부여 받아야 한다.",                         "s2_q8","P7_S2_Q8",5],
+  ["이상적인 사회에서 어떤 집단은 상위에 있고 다른 집단은 하위에 위치하는 것이 필요하다.", "s2_q1", "P7_S2_Q1", 5],
+  ["어떤 집단은 다른 집단에 비해 열등하다.", "s2_q2", "P7_S2_Q2", 5],
+  ["어떤 집단도 사회에서 지배적이고 위치를 차지해서는 안 된다.", "s2_q3", "P7_S2_Q3", 5],
+  ["사회의 하위 그룹도 상위 그룹만큼 자격이 있다.", "s2_q4", "P7_S2_Q4", 5],
+  ["집단 간 평등이 우리 사회의 주된 가치가 되어서는 안 된다.", "s2_q5", "P7_S2_Q5", 5],
+  ["집단들을 평등하게 만들려고 노력하는 것은 부당하다.", "s2_q6", "P7_S2_Q6", 5],
+  ["우리는 다양한 집단의 조건을 평등하게 만들기 위해 할 수 있는 것을 해야 한다.", "s2_q7", "P7_S2_Q7", 5],
+  ["모든 집단은 성공할 수 있는 동등한 기회를 부여 받아야 한다.", "s2_q8", "P7_S2_Q8", 5],
 ];
 
-/* 이하 스크립트는 원래 코드 그대로 복사 — 단, sec3 관련 부분 제거 */
 (function(){
   const qs = new URLSearchParams(location.search);
   const pid = qs.get('pid') || localStorage.getItem('exp_pid') || '';
@@ -96,61 +90,68 @@ const SEC2 = [
 
   function renderSection(containerId, items){
     const wrap = document.getElementById(containerId);
+    if (!wrap) return;
     items.forEach(([text, name, qkey, scale])=>{
       const q = document.createElement('div');
       q.className = 'q';
-      q.innerHTML = `<div class="qname">${text}</div><div class="scale" data-name="${name}" data-qkey="${qkey}" data-scale="${scale}"></div>`;
+      q.innerHTML = `
+        <div class="qname">${text}</div>
+        <div class="scale" data-name="${name}" data-qkey="${qkey}" data-scale="${scale}"></div>
+      `;
       wrap.appendChild(q);
     });
   }
+
   renderSection('sec1', SEC1);
   renderSection('sec2', SEC2);
 
   document.querySelectorAll('.scale').forEach(scale=>{
     const name = scale.dataset.name;
-    const max  = parseInt(scale.dataset.scale,10)||5;
-    for(let v=1;v<=max;v++){
-      const lab=document.createElement('label');
-      lab.className='chip';
-      lab.innerHTML=`<input type="radio" name="${name}" value="${v}"><strong>${v}</strong>`;
+    const max = parseInt(scale.dataset.scale, 10);
+    for (let v=1; v<=max; v++){
+      const lab = document.createElement('label');
+      lab.className = 'chip';
+      lab.innerHTML = `<input type="radio" name="${name}" value="${v}"><strong>${v}</strong>`;
       scale.appendChild(lab);
     }
   });
 
   function refreshGroup(name){
-    document.querySelectorAll(`label.chip input[name="${name}"]`).forEach(r=>{
-      r.closest('label.chip').classList.toggle('selected',r.checked);
+    document.querySelectorAll(`input[name="${name}"]`).forEach(r=>{
+      r.closest('label.chip').classList.toggle('selected', r.checked);
     });
   }
-  document.querySelectorAll('label.chip>input').forEach(r=>{
-    r.addEventListener('change',()=>refreshGroup(r.name));
+
+  document.addEventListener('change', e=>{
+    if (e.target.matches('input[type="radio"]')){
+      refreshGroup(e.target.name);
+      refreshBtn();
+    }
   });
 
-  const REQUIRED=[...document.querySelectorAll('.scale')].map(el=>el.dataset.name);
+  const REQUIRED = [...document.querySelectorAll('.scale')].map(el=>el.dataset.name);
   function answeredAll(){return REQUIRED.every(n=>document.querySelector(`input[name="${n}"]:checked`));}
-  function refreshBtn(){nextBtn.disabled=!answeredAll()||sending;}
-  document.addEventListener('change',refreshBtn);
+  function refreshBtn(){nextBtn.disabled = !answeredAll() || sending;}
 
   async function sessionUpsert(answers){
-    const payload={type:'SESSION_UPSERT',pid,page:PAGE,answers};
-    await fetch(API,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)});
+    const payload = {type:'SESSION_UPSERT', pid, page:PAGE, answers};
+    await fetch(API, {method:'POST', headers:{'Content-Type':'text/plain'}, body:JSON.stringify(payload)});
   }
 
   function collectAnswers(){
     const out=[];
     document.querySelectorAll('.scale').forEach(scale=>{
-      const name=scale.dataset.name, key=scale.dataset.qkey;
-      const el=document.querySelector(`input[name="${name}"]:checked`);
-      if(el) out.push({key,value:el.value});
+      const el = document.querySelector(`input[name="${scale.dataset.name}"]:checked`);
+      if (el) out.push({key:scale.dataset.qkey, value:el.value});
     });
     return out;
   }
 
-  nextBtn.addEventListener('click',async()=>{
-    if(!answeredAll()||sending)return;
-    sending=true;refreshBtn();
-    try{await sessionUpsert(collectAnswers());}catch(e){console.warn(e);}
-    location.href=`${NEXT_PAGE_URL}?pid=${encodeURIComponent(pid)}`;
+  nextBtn.addEventListener('click', async ()=>{
+    if (!answeredAll() || sending) return;
+    sending = true; refreshBtn();
+    try { await sessionUpsert(collectAnswers()); } catch(e){ console.warn(e); }
+    location.href = `${NEXT_PAGE_URL}?pid=${encodeURIComponent(pid)}`;
   });
 })();
 </script>
