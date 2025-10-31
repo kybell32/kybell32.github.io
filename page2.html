@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>소셜 미디어 연구_p2 </title>
+<title>소셜 미디어 연구_p2</title>
 <style>
   body{margin:0;background:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,Arial,sans-serif;color:#111827;line-height:1.6}
   header{position:sticky;top:0;background:#fff;border-bottom:1px solid #e5e7eb;padding:12px;text-align:center;font-weight:600}
@@ -45,9 +45,11 @@
 </main>
 
 <script>
-const API = "https://script.google.com/macros/s/AKfycbxhI7GJJI2jebIWhxr_3nkvvYStEtzNjFZpUuIezsnNKd7G1Mf8emvyrW_AJUsZNg2U/exec"; // 동일한 GAS URL
+/***** ▼ 설정 ▼ *****/
+const API = "https://script.google.com/macros/s/AKfycbxhI7GJJI2jebIWhxr_3nkvvYStEtzNjFZpUuIezsnNKd7G1Mf8emvyrW_AJUsZNg2U/exec";
 const PAGE = 2;
 const NEXT_PAGE_URL = "page3.html";
+/***** ▲ 설정 끝 ▲*/
 
 (function(){
   const qs = new URLSearchParams(location.search);
@@ -60,28 +62,40 @@ const NEXT_PAGE_URL = "page3.html";
       type: 'SESSION_UPSERT',
       pid,
       page: PAGE,
-      answers: [] // 응답 없음 → 메타만 갱신(업데이트 시간, last_page, pages_submitted)
+      answers: []
     };
-    const res = await fetch(API, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain' }, // 심플요청, preflight 없음
-      body: JSON.stringify(payload)
-    });
-    // 실패해도 진행은 가능하게 (원하면 강제 중단 처리해도 됨)
-    if (!res.ok) console.warn('SESSION_UPSERT failed:', res.status);
+    try {
+      const res = await fetch(API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) console.warn('SESSION_UPSERT failed:', res.status);
+    } catch(e){ console.warn(e); }
   }
 
   nextBtn.addEventListener('click', async () => {
     if (sending) return;
     sending = true;
     nextBtn.disabled = true;
-    try {
-      await sessionUpsert(); // 페이지2 확정 시점에서만 1회 기록
-    } catch (e) {
-      console.warn(e);
-    }
+
+    await sessionUpsert();
+
     const next = `${NEXT_PAGE_URL}?pid=${encodeURIComponent(pid)}`;
     location.href = next;
+  });
+
+  // 페이지 닫기 대비 sendBeacon (optional)
+  window.addEventListener('beforeunload', ()=>{
+    try{
+      const payload = JSON.stringify({
+        type:'SESSION_UPSERT',
+        pid,
+        page: PAGE,
+        answers:[]
+      });
+      navigator.sendBeacon(API, new Blob([payload], {type:'text/plain'}));
+    }catch(e){}
   });
 })();
 </script>
