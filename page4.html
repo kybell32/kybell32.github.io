@@ -25,6 +25,7 @@
   label.chip:hover{background:#f9fafb}
   label.chip:focus-within{box-shadow:0 0 0 3px rgba(37,99,235,.2)}
   label.chip.selected{background:#eef2ff;border-color:#93c5fd;box-shadow:inset 0 0 0 2px #2563eb;}
+  label.chip.selected strong{color:#1d4ed8}
   .btn-area{text-align:center;margin-top:24px}
   .btn{border:none;border-radius:10px;padding:12px 20px;font-size:16px;background:#2563eb;color:#fff;font-weight:600;cursor:pointer}
   .btn:disabled{opacity:.5;cursor:not-allowed}
@@ -57,38 +58,41 @@
 </main>
 
 <script>
+const API = "https://script.google.com/macros/s/AKfycbxhI7GJJI2jebIWhxr_3nkvvYStEtzNjFZpUuIezsnNKd7G1Mf8emvyrW_AJUsZNg2U/exec";
+const PAGE = "4";
+const NEXT_PAGE_URL = "page5.html";
+
+// 테스트용: 실제 API 연결 시 API 변수 사용
+// const API = "https://script.google.com/macros/s/.../exec";
+
+const SEC1 = [
+  ["소셜 미디어에 대해 생각하거나 사용계획을 세우는 데 많은 시간을 보냈습니까?", "s1_q1", "P7_S1_Q1", 5],
+  ["소셜 미디어를 점점 더 많이 하고 싶다는 충동을 느꼈습니까?", "s1_q2", "P7_S1_Q2", 5],
+  ["개인적인 문제를 잊기 위해 소셜 미디어를 사용했습니까?", "s1_q3", "P7_S1_Q3", 5],
+  ["소셜 미디어 사용을 줄이려고 시도했지만 성공하지 못했습니까?", "s1_q4", "P7_S1_Q4", 5],
+  ["소셜 미디어를 사용하지 못하게 되면 안절부절 못하거나 괴로웠습니까?", "s1_q5", "P7_S1_Q5", 5],
+  ["너무 많이 소셜 미디어를 사용해서 일이나 학업에 부정적인 영향이 있었습니까?", "s1_q6", "P7_S1_Q6", 5],
+];
+
+const SEC2 = [
+  ["이상적인 사회에서 어떤 집단은 상위에 있고 다른 집단은 하위에 위치하는 것이 필요하다.", "s2_q1", "P7_S2_Q1", 5],
+  ["어떤 집단은 다른 집단에 비해 열등하다.", "s2_q2", "P7_S2_Q2", 5],
+  ["어떤 집단도 사회에서 지배적이고 위치를 차지해서는 안 된다.", "s2_q3", "P7_S2_Q3", 5],
+  ["사회의 하위 그룹도 상위 그룹만큼 자격이 있다.", "s2_q4", "P7_S2_Q4", 5],
+  ["집단 간 평등이 우리 사회의 주된 가치가 되어서는 안 된다.", "s2_q5", "P7_S2_Q5", 5],
+  ["집단들을 평등하게 만들려고 노력하는 것은 부당하다.", "s2_q6", "P7_S2_Q6", 5],
+  ["우리는 다양한 집단의 조건을 평등하게 만들기 위해 할 수 있는 것을 해야 한다.", "s2_q7", "P7_S2_Q7", 5],
+  ["모든 집단은 성공할 수 있는 동등한 기회를 부여 받아야 한다.", "s2_q8", "P7_S2_Q8", 5],
+];
+
 document.addEventListener('DOMContentLoaded', ()=>{
-  const API = "https://script.google.com/macros/s/AKfycbxhI7GJJI2jebIWhxr_3nkvvYStEtzNjFZpUuIezsnNKd7G1Mf8emvyrW_AJUsZNg2U/exec";
-  const PAGE = "4";
-  const NEXT_PAGE_URL = "page5.html";
-
-  const SEC1 = [
-    ["소셜 미디어에 대해 생각하거나 사용계획을 세우는 데 많은 시간을 보냈습니까?", "s1_q1", "P7_S1_Q1", 5],
-    ["소셜 미디어를 점점 더 많이 하고 싶다는 충동을 느꼈습니까?", "s1_q2", "P7_S1_Q2", 5],
-    ["개인적인 문제를 잊기 위해 소셜 미디어를 사용했습니까?", "s1_q3", "P7_S1_Q3", 5],
-    ["소셜 미디어 사용을 줄이려고 시도했지만 성공하지 못했습니까?", "s1_q4", "P7_S1_Q4", 5],
-    ["소셜 미디어를 사용하지 못하게 되면 안절부절 못하거나 괴로웠습니까?", "s1_q5", "P7_S1_Q5", 5],
-    ["너무 많이 소셜 미디어를 사용해서 일이나 학업에 부정적인 영향이 있었습니까?", "s1_q6", "P7_S1_Q6", 5],
-  ];
-
-  const SEC2 = [
-    ["이상적인 사회에서 어떤 집단은 상위에 있고 다른 집단은 하위에 위치하는 것이 필요하다.", "s2_q1", "P7_S2_Q1", 5],
-    ["어떤 집단은 다른 집단에 비해 열등하다.", "s2_q2", "P7_S2_Q2", 5],
-    ["어떤 집단도 사회에서 지배적이고 위치를 차지해서는 안 된다.", "s2_q3", "P7_S2_Q3", 5],
-    ["사회의 하위 그룹도 상위 그룹만큼 자격이 있다.", "s2_q4", "P7_S2_Q4", 5],
-    ["집단 간 평등이 우리 사회의 주된 가치가 되어서는 안 된다.", "s2_q5", "P7_S2_Q5", 5],
-    ["집단들을 평등하게 만들려고 노력하는 것은 부당하다.", "s2_q6", "P7_S2_Q6", 5],
-    ["우리는 다양한 집단의 조건을 평등하게 만들기 위해 할 수 있는 것을 해야 한다.", "s2_q7", "P7_S2_Q7", 5],
-    ["모든 집단은 성공할 수 있는 동등한 기회를 부여 받아야 한다.", "s2_q8", "P7_S2_Q8", 5],
-  ];
-
-  const pid = new URLSearchParams(location.search).get('pid') || localStorage.getItem('exp_pid') || '';
   const nextBtn = document.getElementById('nextBtn');
   let sending = false;
 
   // 문항 렌더링
   function renderSection(containerId, items){
     const wrap = document.getElementById(containerId);
+    if (!wrap) return;
     items.forEach(([text, name, qkey, scale])=>{
       const q = document.createElement('div');
       q.className = 'q';
@@ -100,19 +104,20 @@ document.addEventListener('DOMContentLoaded', ()=>{
     });
   }
 
-  // 칩 생성
-  function createChips(){
-    document.querySelectorAll('.scale').forEach(scale=>{
-      const name = scale.dataset.name;
-      const max = parseInt(scale.dataset.scale, 10);
-      for(let v=1; v<=max; v++){
-        const lab = document.createElement('label');
-        lab.className = 'chip';
-        lab.innerHTML = `<input type="radio" name="${name}" value="${v}"><strong>${v}</strong>`;
-        scale.appendChild(lab);
-      }
-    });
-  }
+  renderSection('sec1', SEC1);
+  renderSection('sec2', SEC2);
+
+  // radio 버튼 생성
+  document.querySelectorAll('.scale').forEach(scale=>{
+    const name = scale.dataset.name;
+    const max = parseInt(scale.dataset.scale, 10);
+    for (let v=1; v<=max; v++){
+      const lab = document.createElement('label');
+      lab.className = 'chip';
+      lab.innerHTML = `<input type="radio" name="${name}" value="${v}"><strong>${v}</strong>`;
+      scale.appendChild(lab);
+    }
+  });
 
   function refreshGroup(name){
     document.querySelectorAll(`input[name="${name}"]`).forEach(r=>{
@@ -120,64 +125,51 @@ document.addEventListener('DOMContentLoaded', ()=>{
     });
   }
 
-  function answeredAll(){
-    return [...document.querySelectorAll('.scale')].every(scale=>{
-      return document.querySelector(`input[name="${scale.dataset.name}"]:checked`);
-    });
-  }
-
-  function refreshBtn(){ nextBtn.disabled = !answeredAll() || sending; }
-
-  function collectAnswers(){
-    const out=[];
-    document.querySelectorAll('.scale').forEach(scale=>{
-      const el = document.querySelector(`input[name="${scale.dataset.name}"]:checked`);
-      if(el) out.push({key: scale.dataset.qkey, value: el.value});
-    });
-    return out;
-  }
-
-  async function sessionUpsert(answers){
-    const payload = {type:'SESSION_UPSERT', pid, page:PAGE, answers};
-    try{
-      const res = await fetch(API,{
-        method:'POST',
-        headers:{'Content-Type':'text/plain'},
-        body: JSON.stringify(payload),
-        keepalive: true
-      });
-      return res.ok;
-    } catch(e){
-      console.warn(e);
-      return false;
-    }
-  }
-
   document.addEventListener('change', e=>{
-    if(e.target.matches('input[type="radio"]')){
+    if (e.target.matches('input[type="radio"]')){
       refreshGroup(e.target.name);
       refreshBtn();
     }
   });
 
+  const REQUIRED = [...document.querySelectorAll('.scale')].map(el=>el.dataset.name);
+  function answeredAll(){return REQUIRED.every(n=>document.querySelector(`input[name="${n}"]:checked`));}
+  function refreshBtn(){nextBtn.disabled = !answeredAll() || sending;}
+
+  // 데이터 수집 (API 호출은 테스트용으로 주석 처리)
+  function collectAnswers(){
+    const out=[];
+    document.querySelectorAll('.scale').forEach(scale=>{
+      const el = document.querySelector(`input[name="${scale.dataset.name}"]:checked`);
+      if (el) out.push({key:scale.dataset.qkey, value:el.value});
+    });
+    return out;
+  }
+
   nextBtn.addEventListener('click', async ()=>{
-    if(!answeredAll() || sending) return;
+    if (!answeredAll() || sending) return;
     sending = true; refreshBtn();
+
     const answers = collectAnswers();
+    console.log('답변 수집:', answers);
+
+    // 실제 API 전송 시 아래 주석 해제
+    /*
     const success = await sessionUpsert(answers);
     if(success){
       location.href = `${NEXT_PAGE_URL}?pid=${encodeURIComponent(pid)}`;
     } else {
       alert('데이터 저장에 실패했습니다.');
-      sending = false; refreshBtn();
+      sending = false;
+      refreshBtn();
     }
-  });
+    */
 
-  // 초기 렌더링
-  renderSection('sec1', SEC1);
-  renderSection('sec2', SEC2);
-  createChips();
-  refreshBtn();
+    // 테스트용: 다음 페이지 이동
+    alert('테스트 완료! 다음 페이지로 이동합니다.');
+    sending = false;
+    refreshBtn();
+  });
 });
 </script>
 
