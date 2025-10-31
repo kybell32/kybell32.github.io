@@ -62,9 +62,6 @@ const API = "https://script.google.com/macros/s/AKfycbxhI7GJJI2jebIWhxr_3nkvvYSt
 const PAGE = "4";
 const NEXT_PAGE_URL = "page5.html";
 
-// 테스트용: 실제 API 연결 시 API 변수 사용
-// const API = "https://script.google.com/macros/s/.../exec";
-
 const SEC1 = [
   ["소셜 미디어에 대해 생각하거나 사용계획을 세우는 데 많은 시간을 보냈습니까?", "s1_q1", "P7_S1_Q1", 5],
   ["소셜 미디어를 점점 더 많이 하고 싶다는 충동을 느꼈습니까?", "s1_q2", "P7_S1_Q2", 5],
@@ -85,11 +82,12 @@ const SEC2 = [
   ["모든 집단은 성공할 수 있는 동등한 기회를 부여 받아야 한다.", "s2_q8", "P7_S2_Q8", 5],
 ];
 
-document.addEventListener('DOMContentLoaded', ()=>{
+(function(){
+  const qs = new URLSearchParams(location.search);
+  const pid = qs.get('pid') || localStorage.getItem('exp_pid') || '';
   const nextBtn = document.getElementById('nextBtn');
   let sending = false;
 
-  // 문항 렌더링
   function renderSection(containerId, items){
     const wrap = document.getElementById(containerId);
     if (!wrap) return;
@@ -107,7 +105,6 @@ document.addEventListener('DOMContentLoaded', ()=>{
   renderSection('sec1', SEC1);
   renderSection('sec2', SEC2);
 
-  // radio 버튼 생성
   document.querySelectorAll('.scale').forEach(scale=>{
     const name = scale.dataset.name;
     const max = parseInt(scale.dataset.scale, 10);
@@ -136,7 +133,11 @@ document.addEventListener('DOMContentLoaded', ()=>{
   function answeredAll(){return REQUIRED.every(n=>document.querySelector(`input[name="${n}"]:checked`));}
   function refreshBtn(){nextBtn.disabled = !answeredAll() || sending;}
 
-  // 데이터 수집 (API 호출은 테스트용으로 주석 처리)
+  async function sessionUpsert(answers){
+    const payload = {type:'SESSION_UPSERT', pid, page:PAGE, answers};
+    await fetch(API, {method:'POST', headers:{'Content-Type':'text/plain'}, body:JSON.stringify(payload)});
+  }
+
   function collectAnswers(){
     const out=[];
     document.querySelectorAll('.scale').forEach(scale=>{
@@ -149,29 +150,10 @@ document.addEventListener('DOMContentLoaded', ()=>{
   nextBtn.addEventListener('click', async ()=>{
     if (!answeredAll() || sending) return;
     sending = true; refreshBtn();
-
-    const answers = collectAnswers();
-    console.log('답변 수집:', answers);
-
-    // 실제 API 전송 시 아래 주석 해제
-    /*
-    const success = await sessionUpsert(answers);
-    if(success){
-      location.href = `${NEXT_PAGE_URL}?pid=${encodeURIComponent(pid)}`;
-    } else {
-      alert('데이터 저장에 실패했습니다.');
-      sending = false;
-      refreshBtn();
-    }
-    */
-
-    // 테스트용: 다음 페이지 이동
-    alert('테스트 완료! 다음 페이지로 이동합니다.');
-    sending = false;
-    refreshBtn();
+    try { await sessionUpsert(collectAnswers()); } catch(e){ console.warn(e); }
+    location.href = `${NEXT_PAGE_URL}?pid=${encodeURIComponent(pid)}`;
   });
-});
+})();
 </script>
-
 </body>
 </html>
