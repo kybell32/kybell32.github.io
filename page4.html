@@ -1,3 +1,5 @@
+p.4
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -82,11 +84,12 @@ const SEC2 = [
   ["모든 집단은 성공할 수 있는 동등한 기회를 부여 받아야 한다.", "s2_q8", "P7_S2_Q8", 5],
 ];
 
-document.addEventListener('DOMContentLoaded', ()=>{
+(function(){
+  const qs = new URLSearchParams(location.search);
+  const pid = qs.get('pid') || localStorage.getItem('exp_pid') || '';
   const nextBtn = document.getElementById('nextBtn');
   let sending = false;
 
-  // 문항 렌더링
   function renderSection(containerId, items){
     const wrap = document.getElementById(containerId);
     if (!wrap) return;
@@ -104,7 +107,6 @@ document.addEventListener('DOMContentLoaded', ()=>{
   renderSection('sec1', SEC1);
   renderSection('sec2', SEC2);
 
-  // radio 버튼 생성
   document.querySelectorAll('.scale').forEach(scale=>{
     const name = scale.dataset.name;
     const max = parseInt(scale.dataset.scale, 10);
@@ -133,7 +135,11 @@ document.addEventListener('DOMContentLoaded', ()=>{
   function answeredAll(){return REQUIRED.every(n=>document.querySelector(`input[name="${n}"]:checked`));}
   function refreshBtn(){nextBtn.disabled = !answeredAll() || sending;}
 
-  // 데이터 수집
+  async function sessionUpsert(answers){
+    const payload = {type:'SESSION_UPSERT', pid, page:PAGE, answers};
+    await fetch(API, {method:'POST', headers:{'Content-Type':'text/plain'}, body:JSON.stringify(payload)});
+  }
+
   function collectAnswers(){
     const out=[];
     document.querySelectorAll('.scale').forEach(scale=>{
@@ -143,40 +149,13 @@ document.addEventListener('DOMContentLoaded', ()=>{
     return out;
   }
 
-  // 실제 API 전송 함수
-  async function sessionUpsert(answers){
-    try {
-      const pid = localStorage.getItem("pid") || "0000"; // 피험자 ID 저장 방식 맞춰 수정 가능
-      const payload = { page: PAGE, pid, data: answers };
-      const res = await fetch(API, {
-        method: "POST",
-        body: JSON.stringify(payload),
-        headers: { "Content-Type": "application/json" },
-      });
-      const json = await res.json();
-      return json.result === "success";
-    } catch (err){
-      console.error("전송 오류:", err);
-      return false;
-    }
-  }
-
   nextBtn.addEventListener('click', async ()=>{
     if (!answeredAll() || sending) return;
     sending = true; refreshBtn();
-
-    const answers = collectAnswers();
-    const success = await sessionUpsert(answers);
-
-    if(success){
-      location.href = NEXT_PAGE_URL;
-    } else {
-      alert("데이터 저장에 실패했습니다. 새로고침을 눌러 주세요.");
-      sending = false;
-      refreshBtn();
-    }
+    try { await sessionUpsert(collectAnswers()); } catch(e){ console.warn(e); }
+    location.href = `${NEXT_PAGE_URL}?pid=${encodeURIComponent(pid)}`;
   });
-});
+})();
 </script>
 </body>
 </html>
