@@ -81,16 +81,39 @@ const NEXT_PAGE_URL = "page2.html";
   }
 
   submitBtn.addEventListener('click', async ()=>{
-    const idTail = idInput.value.trim();
-    if (!isValid(idTail)) return;
+  const idTail = idInput.value.trim();
+  if (!isValid(idTail)) return;
 
-    // 전송 (최종값 1회)
-    try { await upsertSession(idTail); } catch(e) { console.warn(e); }
+  submitBtn.disabled = true;  // 중복 클릭 방지
 
-    // 다음 페이지로 이동 (pid 유지)
-    const next = `${NEXT_PAGE_URL}?pid=${encodeURIComponent(pid)}`;
-    location.href = next;
-  });
+  try {
+    const res = await fetch(API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({
+        type:'SESSION_UPSERT',
+        pid,
+        page: PAGE,
+        answers:[{ key:'P1_IDTAIL', value:idTail }]
+      })
+    });
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    // Apps Script에서 JSON 응답 확인 (선택)
+    const data = await res.json().catch(()=>({}));
+    if (data.ok === false) throw new Error('API rejected');
+
+    // 성공하면 다음 페이지 이동
+    location.href = `${NEXT_PAGE_URL}?pid=${encodeURIComponent(pid)}`;
+
+  } catch (e) {
+    console.warn('데이터 저장 실패:', e);
+    alert('데이터 저장에 실패했습니다. 인터넷 연결을 확인하고 다시 시도해주세요.');
+    submitBtn.disabled = false; // 재시도 가능
+  }
+});
+
 
   // (선택) 페이지 로드 이벤트를 남기고 싶다면, SESSION_UPSERT로 메타만 찍을 수도 있음
   // fetch(API, { method:'POST', headers:{'Content-Type':'text/plain'},
