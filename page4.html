@@ -88,6 +88,7 @@ const SEC2 = [
   const nextBtn = document.getElementById('nextBtn');
   let sending = false;
 
+  // ===== 화면 렌더링 =====
   function renderSection(containerId, items){
     const wrap = document.getElementById(containerId);
     if (!wrap) return;
@@ -101,7 +102,6 @@ const SEC2 = [
       wrap.appendChild(q);
     });
   }
-
   renderSection('sec1', SEC1);
   renderSection('sec2', SEC2);
 
@@ -133,9 +133,28 @@ const SEC2 = [
   function answeredAll(){return REQUIRED.every(n=>document.querySelector(`input[name="${n}"]:checked`));}
   function refreshBtn(){nextBtn.disabled = !answeredAll() || sending;}
 
-  async function sessionUpsert(answers){
+  // ===== 데이터 전송 (안정화 + 재시도) =====
+  async function sessionUpsert(answers, retryCount = 0){
     const payload = {type:'SESSION_UPSERT', pid, page:PAGE, answers};
-    await fetch(API, {method:'POST', headers:{'Content-Type':'text/plain'}, body:JSON.stringify(payload)});
+    try {
+      const res = await fetch(API, {
+        method:'POST',
+        headers:{'Content-Type':'text/plain'},
+        body: JSON.stringify(payload),
+        mode: 'cors',
+        cache: 'no-store',
+      });
+      const text = await res.text(); // 응답이 완전히 도착할 때까지 기다림
+      if (!res.ok) throw new Error(text || 'Fetch failed');
+      return true;
+    } catch (e) {
+      console.warn(`전송 실패 ${retryCount + 1}회:`, e);
+      if (retryCount < 2) { // 최대 3번 시도
+        await new Promise(r => setTimeout(r, 400)); // 잠시 대기 후 재시도
+        return sessionUpsert(answers, retryCount + 1);
+      }
+      return false;
+    }
   }
 
   function collectAnswers(){
@@ -150,10 +169,15 @@ const SEC2 = [
   nextBtn.addEventListener('click', async ()=>{
     if (!answeredAll() || sending) return;
     sending = true; refreshBtn();
-    try { await sessionUpsert(collectAnswers()); } catch(e){ console.warn(e); }
-    location.href = `${NEXT_PAGE_URL}?pid=${encodeURIComponent(pid)}`;
+
+    const success = await sessionUpsert(collectAnswers());
+    // 전송이 완료되거나, 재시도 후 실패하더라도 0.4초 뒤 이동
+    setTimeout(()=>{
+      location.href = `${NEXT_PAGE_URL}?pid=${encodeURIComponent(pid)}`;
+    }, 400);
   });
 })();
 </script>
+
 </body>
 </html>
