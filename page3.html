@@ -20,34 +20,10 @@
   input[type="text"]{border:1px solid var(--line);border-radius:10px;padding:8px 10px}
   .note{font-size:12px;color:var(--muted)}
   .contact{margin-top:10px;font-size:14px}
-  /* 버튼 영역 & 디자인 (p6 스타일 적용) */
-  .footer {
-    margin-top: 20px;
-    text-align: center;
-  }
-
-  .btn {
-    border: none;
-    border-radius: 10px;
-    padding: 12px 18px;
-    font-size: 16px;
-    background: var(--pri);
-    color: #fff;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background .2s, transform .1s;
-  }
-
-  .btn:hover:not(:disabled) {
-    background: #1d4ed8;
-    transform: translateY(-1px);
-  }
-
-  .btn:disabled {
-    opacity: .5;
-    cursor: not-allowed;
-  }
-
+  .footer {margin-top: 20px;text-align: center;}
+  .btn {border: none;border-radius: 10px;padding: 12px 18px;font-size: 16px;background: var(--pri);color: #fff;font-weight: 600;cursor: pointer;transition: background .2s, transform .1s;}
+  .btn:hover:not(:disabled) {background: #1d4ed8;transform: translateY(-1px);}
+  .btn:disabled {opacity: .5;cursor: not-allowed;}
 </style>
 </head>
 <body>
@@ -108,18 +84,16 @@
     </div>
 
     <div class="footer">
-      <button id="nextBtn" class="btn primary" disabled>다음</button>
+      <button id="nextBtn" class="btn" disabled>다음</button>
     </div>
   </section>
 </main>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-  /***** ▼ 설정 ▼ *****/
   const API = "https://script.google.com/macros/s/AKfycbxhI7GJJI2jebIWhxr_3nkvvYStEtzNjFZpUuIezsnNKd7G1Mf8emvyrW_AJUsZNg2U/exec";
   const PAGE = 3;
   const NEXT_PAGE_URL = "page4.html";
-  /***** ▲ 설정 끝 ▲ *****/
 
   const qs = new URLSearchParams(location.search);
   const pid = qs.get('pid') || localStorage.getItem('exp_pid') || '';
@@ -127,6 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const pname = document.getElementById('pname');
 
   const qNames = ['q1','q2','q3','q4'];
+
   function getAnswers(){
     const out = {};
     for(const n of qNames){
@@ -135,12 +110,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     return out;
   }
+
   function allYes(ans){ return ans.q1==='예' && ans.q2==='예' && ans.q3==='예' && ans.q4==='예'; }
 
   function syncState(){
     const ans = getAnswers();
-    const ok = allYes(ans) && !!pname.value.trim();
-    nextBtn.disabled = !ok;
+    nextBtn.disabled = !(allYes(ans) && pname.value.trim());
   }
 
   document.querySelectorAll('input[type="radio"]').forEach(el=>el.addEventListener('change', syncState));
@@ -148,19 +123,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function sessionUpsert(answers){
     const payload = { type:'SESSION_UPSERT', pid, page: PAGE, answers };
-    const res = await fetch(API, {
-      method:'POST',
-      headers:{ 'Content-Type':'text/plain' },
-      body: JSON.stringify(payload)
-    });
-    if(!res.ok) console.warn('SESSION_UPSERT failed:', res.status);
+    try{
+      const res = await fetch(API, { method:'POST', headers:{ 'Content-Type':'text/plain' }, body: JSON.stringify(payload) });
+      if(!res.ok) console.warn('SESSION_UPSERT failed:', res.status);
+    } catch(e){ console.warn(e); }
   }
 
   nextBtn.addEventListener('click', async ()=>{
     const ans = getAnswers();
     if(!allYes(ans)) return;
     const name = pname.value.trim();
-
     const answers = [
       { key:'P3_Q1', value: ans.q1 },
       { key:'P3_Q2', value: ans.q2 },
@@ -168,15 +140,11 @@ document.addEventListener('DOMContentLoaded', () => {
       { key:'P3_Q4', value: ans.q4 },
       { key:'P3_NAME', value: name }
     ];
-    try { await sessionUpsert(answers); } catch(e) { console.warn(e); }
-
-    const next = `${NEXT_PAGE_URL}?pid=${encodeURIComponent(pid)}`;
-    location.href = next;
+    await sessionUpsert(answers);
+    location.href = `${NEXT_PAGE_URL}?pid=${encodeURIComponent(pid)}`;
   });
+
 });
 </script>
-
-
 </body>
 </html>
-
