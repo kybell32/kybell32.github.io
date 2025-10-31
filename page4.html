@@ -167,16 +167,21 @@ const SEC2 = [
   }
 
   nextBtn.addEventListener('click', async ()=>{
-    if (!answeredAll() || sending) return;
-    sending = true; refreshBtn();
+  if (!answeredAll() || sending) return;
+  sending = true; refreshBtn();
 
-    const success = await sessionUpsert(collectAnswers());
-    // 전송이 완료되거나, 재시도 후 실패하더라도 0.4초 뒤 이동
-    setTimeout(()=>{
-      location.href = `${NEXT_PAGE_URL}?pid=${encodeURIComponent(pid)}`;
-    }, 400);
-  });
-})();
+  const answers = collectAnswers();
+  const success = await sessionUpsert(answers);
+  
+  if(success){
+    location.href = `${NEXT_PAGE_URL}?pid=${encodeURIComponent(pid)}`;
+  } else {
+    alert('데이터 저장에 실패했습니다. 인터넷 연결을 확인하고 다시 시도해주세요.');
+    sending = false;
+    refreshBtn();
+  }
+});
+
 </script>
 
 </body>
