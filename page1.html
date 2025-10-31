@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>소셜 미디어 연구_p1</title>
+<title>소셜 미디어 연구_p1 </title>
 <style>
   body{margin:0;height:100vh;display:flex;align-items:center;justify-content:center;background:#f6f7f9;font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,Arial,sans-serif;color:#111827}
   .popup{background:#fff;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.1);padding:24px;max-width:320px;width:100%;text-align:center}
@@ -19,6 +19,7 @@
 <div class="popup">
   <h1>전화 번호 뒷자리 4개를 입력해 주세요.</h1>
   <div class="row">
+    <!-- 모바일 입력 편의 + 길이 제한 위해 text + 패턴 사용 -->
     <input id="idtail" type="text" inputmode="numeric" pattern="\\d{4}" maxlength="4" placeholder="4자리" />
     <button id="submitBtn" disabled>입력</button>
   </div>
@@ -27,66 +28,74 @@
 
 <script>
 /***** ▼ 설정 ▼ *****/
-const API = "https://script.google.com/macros/s/AKfycbxhI7GJJI2jebIWhxr_3nkvvYStEtzNjFZpUuIezsnNKd7G1Mf8emvyrW_AJUsZNg2U/exec";
+const API = "https://script.google.com/macros/s/AKfycbxhI7GJJI2jebIWhxr_3nkvvYStEtzNjFZpUuIezsnNKd7G1Mf8emvyrW_AJUsZNg2U/exec";   // 예: https://script.google.com/macros/s/AKf.../exec
 const PAGE = 1;
 const NEXT_PAGE_URL = "page2.html";
-/***** ▲ 설정 끝 ▲*/
+/***** ▲ 설정 끝 ▲ *****/
 
 (function(){
   const qs = new URLSearchParams(location.search);
   const pid = qs.get('pid') || localStorage.getItem('exp_pid') || '';
+  // pid는 index.html에서 생성/전달됨. 여기선 덮어쓰지 않음!
 
   const idInput = document.getElementById('idtail');
   const submitBtn = document.getElementById('submitBtn');
 
+  // 입력 검증: 숫자 4자리만
   const isValid = v => /^\d{4}$/.test(v);
 
   function syncButton(){
     submitBtn.disabled = !isValid(idInput.value.trim());
   }
-
   idInput.addEventListener('input', ()=>{
+    // 숫자 이외 문자 제거
     idInput.value = idInput.value.replace(/\D/g,'').slice(0,4);
     syncButton();
   });
   syncButton();
 
   async function upsertSession(idTail){
+    // 페이지 제출 시 한 번만 전송
     const payload = {
       type: 'SESSION_UPSERT',
       pid,
       page: PAGE,
+      // 스키마: 한 pid=한 행, 문항은 열 키로 저장
       answers: [
         { key: 'P1_IDTAIL', value: idTail }
       ]
     };
+    // 심플 요청: text/plain → preflight 없음
     const res = await fetch(API, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify(payload)
     });
-    if (!res.ok) console.warn('SESSION_UPSERT failed (HTTP):', res.status);
+    // 실패여도 진행할 건지 판단. 보수적으로 확인:
+    if (!res.ok) {
+      console.warn('SESSION_UPSERT failed (HTTP):', res.status);
+    } else {
+      // Apps Script가 JSON을 돌려줄 때만 의미 있음(생략 가능)
+      try { const j = await res.json(); if (!j.ok) console.warn('SESSION_UPSERT failed (API):', j); } catch(_) {}
+    }
   }
 
-  async function submitAndNext(){
+  submitBtn.addEventListener('click', async ()=>{
     const idTail = idInput.value.trim();
     if (!isValid(idTail)) return;
 
-    try { await upsertSession(idTail); } catch(e){ console.warn(e); }
+    // 전송 (최종값 1회)
+    try { await upsertSession(idTail); } catch(e) { console.warn(e); }
 
+    // 다음 페이지로 이동 (pid 유지)
     const next = `${NEXT_PAGE_URL}?pid=${encodeURIComponent(pid)}`;
     location.href = next;
-  }
-
-  submitBtn.addEventListener('click', submitAndNext);
-
-  // 페이지 닫기/새로고침 대비 sendBeacon 백업
-  window.addEventListener('beforeunload', () => {
-    try {
-      const payload = JSON.stringify({ type:'SESSION_UPSERT', pid, page: PAGE, answers: [] });
-      navigator.sendBeacon(API, new Blob([payload], { type:'text/plain' }));
-    } catch(e){}
   });
+
+  // (선택) 페이지 로드 이벤트를 남기고 싶다면, SESSION_UPSERT로 메타만 찍을 수도 있음
+  // fetch(API, { method:'POST', headers:{'Content-Type':'text/plain'},
+  //   body: JSON.stringify({ type:'SESSION_UPSERT', pid, page: PAGE, answers: [] })
+  // });
 })();
 </script>
 </body>
