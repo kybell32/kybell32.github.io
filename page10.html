@@ -187,16 +187,34 @@ const NEXT_PAGE_URL = "page11.html";
   }
 
   nextBtn.addEventListener('click', async ()=>{
-    if (!answeredAll() || sending) return;
-    sending = true; refreshBtn();
+  if (!answeredAll() || sending) return;
+  sending = true;
+  refreshBtn();
 
-    const answers = collectAnswers(); // [{key:'P9_S1_Q1', value:'...'}, ...]
-    try { await sessionUpsert(answers); } catch(e) { console.warn(e); }
+  const answers = collectAnswers(); // [{key:'P9_S1_Q1', value:'...'}, ...]
 
+  // fetch가 성공할 때까지 기다리도록
+  try {
+    const res = await fetch(API, {
+      method: 'POST',
+      headers: { 'Content-Type':'text/plain' },
+      body: JSON.stringify({ type:'SESSION_UPSERT', pid, page: PAGE, answers })
+    });
+
+    if (!res.ok) throw new Error(`SESSION_UPSERT failed: ${res.status}`);
+
+    // 정상 저장 후 이동
     const next = `${NEXT_PAGE_URL}?pid=${encodeURIComponent(pid)}`;
     location.href = next;
-  });
-})();
+
+  } catch (err) {
+    console.error(err);
+    sending = false;
+    refreshBtn();
+    alert('응답을 저장하는데 문제가 발생했습니다. 인터넷 연결을 확인한 후 다시 시도해주세요.');
+  }
+});
+
 </script>
 </body>
 </html>
