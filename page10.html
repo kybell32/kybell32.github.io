@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>소셜 미디어 연구_p6 </title>
+<title>소셜 미디어 연구_p6</title>
 <style>
   :root{--line:#e5e7eb;--pri:#2563eb;--bg:#f6f7f9;--muted:#6b7280}
   *{box-sizing:border-box}
@@ -16,22 +15,20 @@
   .qtitle{font-weight:700;margin-bottom:8px}
   .help{font-size:12px;color:var(--muted);margin-bottom:8px}
 
-  /* 스케일: 한 줄 유지 + 필요 시 가로 스크롤 */
   .scale{
     display:flex; flex-wrap:nowrap; gap:8px;
     overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none;
   }
   .scale::-webkit-scrollbar{ display:none; }
 
-  /* 칩(블럭) */
   label.chip{
     position:relative; display:inline-flex; align-items:center;
     border:1px solid var(--line); border-radius:999px;
     padding:8px 10px; background:#fff; cursor:pointer; user-select:none;
-    white-space:nowrap; line-height:1; transition:background .15s, border-color .15s, box-shadow .15s;
+    white-space:nowrap; line-height:1;
+    transition:background .15s, border-color .15s, box-shadow .15s;
     font-size:14px;
   }
-  /* 라디오는 보이지 않게(접근성 유지: 전체 칩 클릭) */
   label.chip > input{
     position:absolute; inset:0; opacity:0; width:100%; height:100%; margin:0; cursor:pointer;
   }
@@ -39,7 +36,6 @@
   label.chip:hover{ background:#f9fafb }
   label.chip:focus-within{ box-shadow:0 0 0 3px rgba(37,99,235,.2) }
 
-  /* 선택 상태 */
   label.chip.selected{
     background:#eef2ff;
     border-color:#93c5fd;
@@ -64,10 +60,10 @@
 <main>
   <h1>아래 문항에 응답해 주세요. 모든 문항에 응답해야 다음으로 이동할 수 있습니다.</h1>
 
-  <!-- 섹션 1: 설득/수용 관련 (3문항) -->
+  <!-- 섹션 1 -->
   <section class="card">
     <div class="qtitle">앞서 본 온라인 게시물의 의견에 대해 어떻게 생각하십니까?</div>
-    <div class="help">1(전혀 그렇지 않다) ~ 7(매우 그렇다).</div>
+    <div class="help">1(전혀 그렇지 않다) ~ 7(매우 그렇다)</div>
 
     <div class="card">
       <div class="qtitle">1) 의견에 결코 동의할 수 없다.</div>
@@ -85,7 +81,7 @@
     </div>
   </section>
 
-  <!-- 섹션 2: 공격/차별/혐오 인식 (3문항) -->
+  <!-- 섹션 2 -->
   <section class="card">
     <div class="qtitle">앞서 본 게시물이 특정 집단에 대해 어떻게 발언한다고 보십니까?</div>
     <div class="help">1(전혀 그렇지 않다) ~ 7(매우 그렇다)</div>
@@ -112,22 +108,20 @@
 </main>
 
 <script>
-/***** ▼ 설정 ▼ *****/
-const API = "https://script.google.com/macros/s/AKfycbxhI7GJJI2jebIWhxr_3nkvvYStEtzNjFZpUuIezsnNKd7G1Mf8emvyrW_AJUsZNg2U/exec";
-const PAGE = 10;
-const NEXT_PAGE_URL = "page11.html";
-/***** ▲ 설정 끝 ▲ *****/
+document.addEventListener("DOMContentLoaded", () => {
+  const API = "https://script.google.com/macros/s/AKfycbxhI7GJJI2jebIWhxr_3nkvvYStEtzNjFZpUuIezsnNKd7G1Mf8emvyrW_AJUsZNg2U/exec";
+  const PAGE = 10;
+  const NEXT_PAGE_URL = "page11.html";
 
-(function(){
   const qs = new URLSearchParams(location.search);
   const pid = qs.get('pid') || localStorage.getItem('exp_pid') || '';
   const nextBtn = document.getElementById('nextBtn');
   let sending = false;
 
-  // 1) 1~7 칩 생성
-  document.querySelectorAll('.scale').forEach(scale=>{
+  // 1~7 칩 생성
+  document.querySelectorAll('.scale').forEach(scale => {
     const name = scale.dataset.name;
-    for(let v=1; v<=7; v++){
+    for (let v = 1; v <= 7; v++) {
       const lab = document.createElement('label');
       lab.className = 'chip';
       lab.innerHTML = `<input type="radio" name="${name}" value="${v}"><strong>${v}</strong>`;
@@ -135,86 +129,54 @@ const NEXT_PAGE_URL = "page11.html";
     }
   });
 
-  // 2) 칩 선택 시 시각 상태(.selected) 토글
+  // 선택 시 스타일 갱신
   function refreshGroup(name){
     document.querySelectorAll(`label.chip input[name="${name}"]`).forEach(r=>{
       const lab = r.closest('label.chip');
-      if (!lab) return;
       lab.classList.toggle('selected', r.checked);
     });
   }
-  function wireChipSelection(){
-    document.querySelectorAll('label.chip > input[type="radio"]').forEach(r=>{
-      refreshGroup(r.name); // 초기 반영
-      r.addEventListener('change', ()=>refreshGroup(r.name));
-    });
-  }
-  wireChipSelection();
 
-  // 3) 완료 체크
+  document.addEventListener('change', (e) => {
+    if (e.target.matches('input[type="radio"]')) {
+      refreshGroup(e.target.name);
+      refreshBtn();
+    }
+  });
+
   const REQUIRED = ['s1_q1','s1_q2','s1_q3','s2_q1','s2_q2','s2_q3'];
   function answeredAll(){
     return REQUIRED.every(n => document.querySelector(`input[name="${n}"]:checked`));
   }
   function refreshBtn(){ nextBtn.disabled = !answeredAll() || sending; }
 
-  // 변경 감지
-  document.addEventListener('change', (e)=>{
-    if (e.target && e.target.matches('input[type="radio"]')) refreshBtn();
-  });
-  refreshBtn();
-
-  // 4) 수집/업서트/이동
-  function collectAnswers(){
-    const out = [];
-    document.querySelectorAll('.scale').forEach(scale=>{
-      const name = scale.dataset.name;
-      const key  = scale.dataset.qkey;
-      const el   = document.querySelector(`input[name="${name}"]:checked`);
-      if (el) out.push({ key, value: el.value });
-    });
-    return out;
-  }
-
-  async function sessionUpsert(answers){
-    const payload = { type:'SESSION_UPSERT', pid, page: PAGE, answers };
-    const res = await fetch(API, {
-      method: 'POST',
-      headers: { 'Content-Type':'text/plain' }, // 심플 요청(프리플라이트 방지)
-      body: JSON.stringify(payload)
-    });
-    if (!res.ok) console.warn('SESSION_UPSERT failed:', res.status);
-  }
-
   nextBtn.addEventListener('click', async ()=>{
-  if (!answeredAll() || sending) return;
-  sending = true;
-  refreshBtn();
+    if (!answeredAll() || sending) return;
+    sending = true;
+    refreshBtn();
 
-  const answers = collectAnswers(); // [{key:'P9_S1_Q1', value:'...'}, ...]
-
-  // fetch가 성공할 때까지 기다리도록
-  try {
-    const res = await fetch(API, {
-      method: 'POST',
-      headers: { 'Content-Type':'text/plain' },
-      body: JSON.stringify({ type:'SESSION_UPSERT', pid, page: PAGE, answers })
+    const answers = [];
+    document.querySelectorAll('.scale').forEach(scale=>{
+      const key = scale.dataset.qkey;
+      const el = scale.querySelector('input:checked');
+      if (el) answers.push({key, value:el.value});
     });
 
-    if (!res.ok) throw new Error(`SESSION_UPSERT failed: ${res.status}`);
-
-    // 정상 저장 후 이동
-    const next = `${NEXT_PAGE_URL}?pid=${encodeURIComponent(pid)}`;
-    location.href = next;
-
-  } catch (err) {
-    console.error(err);
-    sending = false;
-    refreshBtn();
-    alert('응답을 저장하는데 문제가 발생했습니다. 인터넷 연결을 확인한 후 다시 시도해주세요.');
-  }
+    try {
+      const res = await fetch(API, {
+        method:'POST',
+        headers:{'Content-Type':'text/plain'},
+        body:JSON.stringify({type:'SESSION_UPSERT', pid, page:PAGE, answers})
+      });
+      if (!res.ok) throw new Error();
+      location.href = `${NEXT_PAGE_URL}?pid=${encodeURIComponent(pid)}`;
+    } catch(e){
+      alert('응답 저장에 실패했습니다. 다시 시도해주세요.');
+      sending = false;
+      refreshBtn();
+    }
+  });
 });
-
 </script>
 </body>
 </html>
