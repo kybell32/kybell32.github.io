@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>소셜 미디어 연구_p8 </title>
+<title>소셜 미디어 연구_p8</title>
 <style>
   :root{--line:#e5e7eb;--pri:#2563eb}
   body{margin:0;background:#f6f7f9;font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,Arial,sans-serif;color:#111827}
@@ -46,8 +46,7 @@ const API = "https://script.google.com/macros/s/AKfycbxhI7GJJI2jebIWhxr_3nkvvYSt
 const PAGE = 9;
 const NEXT_PAGE_URL = "page10.html";
 const DISPLAY_MS = 45000; // 45초
-// 이 페이지 자극 식별자(분석용 열 이름 값)
-const STIM_KEY = "P8_POST_1";
+const STIM_KEY = "P8_POST_1"; // 분석용 식별자
 /***** ▲ 설정 끝 ▲ *****/
 
 const text = `정신질환자들은 솔직히 사회에서는 짐이지.
@@ -68,7 +67,7 @@ const text = `정신질환자들은 솔직히 사회에서는 짐이지.
   const pid = qs.get('pid') || localStorage.getItem('exp_pid') || '';
   document.getElementById('body').textContent = text;
 
-  // 노출형 지표(더미)
+  // 더미 지표
   const counts = (() => {
     const save = 30 + Math.floor(Math.random()*21);
     const comment = save + Math.floor(Math.random()*100);
@@ -81,13 +80,13 @@ const text = `정신질환자들은 솔직히 사회에서는 짐이지.
   document.getElementById('commentCnt').textContent = counts.comment.toLocaleString();
   document.getElementById('saveCnt').textContent = counts.save.toLocaleString();
 
-  // 자극 제시 사실 기록(세션 업서트) — 연구자가 어떤 자극을 봤는지 확인 가능
+  // 페이지 노출 기록
   sessionUpsert([
     { key: 'P8_STIM_KEY', value: STIM_KEY },
     { key: 'P8_SHOWN_MS', value: String(DISPLAY_MS) }
   ]).catch(console.warn);
 
-  // 타이머/진행바
+  // 진행바 및 타이머
   const bar = document.getElementById('bar');
   let elapsed = 0;
   const interval = setInterval(()=>{
@@ -99,21 +98,35 @@ const text = `정신질환자들은 솔직히 사회에서는 짐이지.
     }
   }, 1000);
 
+  // 안전한 리디렉션 함수
   async function redirect(){
-    try { await sessionUpsert([]); } catch(e){}
+    try {
+      // 업서트 후 0.2초 대기
+      await sessionUpsert([]);
+      await new Promise(r => setTimeout(r, 200));
+    } catch(e){ console.warn(e); }
+
     const next = `${NEXT_PAGE_URL}?pid=${encodeURIComponent(pid)}`;
     location.href = next;
   }
 
-  // 공통 업서트
+  // 공통 업서트 함수
   async function sessionUpsert(answers){
     const payload = { type:'SESSION_UPSERT', pid, page: PAGE, answers };
     await fetch(API, {
       method: 'POST',
-      headers: { 'Content-Type':'text/plain' }, // 심플 요청 → preflight 없음
+      headers: { 'Content-Type':'text/plain' },
       body: JSON.stringify(payload)
     });
   }
+
+  // 페이지 종료 대비 sendBeacon 백업
+  window.addEventListener('beforeunload', () => {
+    try {
+      const payload = JSON.stringify({ type:'SESSION_UPSERT', pid, page: PAGE, answers: [] });
+      navigator.sendBeacon(API, new Blob([payload], { type:'text/plain' }));
+    } catch(e) {}
+  });
 })();
 </script>
 </body>
