@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>소셜 미디어 연구_p4 </title>
+<title>소셜 미디어 연구_p4</title>
 <style>
   :root{--bg:#ffffff;--line:#e5e7eb;--pri:#2563eb;--muted:#6b7280}
   *{box-sizing:border-box}
@@ -45,19 +45,30 @@ const NEXT_PAGE_URL = "page6.html";
       page: PAGE,
       answers: [] // 수집값 없음 → 메타만 갱신 (updated_at, last_page, pages_submitted)
     };
-    const res = await fetch(API, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain' }, // 심플 요청 → preflight 없음
-      body: JSON.stringify(payload)
-    });
-    if (!res.ok) console.warn('SESSION_UPSERT failed:', res.status);
+
+    try {
+      const res = await fetch(API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify(payload),
+        keepalive: true // ← 페이지 언로드 중에도 요청 유지
+      });
+      if (!res.ok) console.warn('SESSION_UPSERT failed:', res.status);
+    } catch (e) {
+      console.warn('SESSION_UPSERT error:', e);
+    }
   }
 
   go.addEventListener('click', async ()=>{
     if (sending) return;
     sending = true;
     go.disabled = true;
-    try { await sessionUpsert(); } catch(e) { console.warn(e); }
+
+    // 비동기 요청 완료를 기다린 뒤 이동 (지연 포함)
+    await sessionUpsert();
+    // 아주 느린 네트워크에서도 안전하게 300ms 정도 대기
+    await new Promise(r => setTimeout(r, 300));
+
     const next = `${NEXT_PAGE_URL}?pid=${encodeURIComponent(pid)}`;
     location.href = next;
   });
@@ -65,4 +76,3 @@ const NEXT_PAGE_URL = "page6.html";
 </script>
 </body>
 </html>
-
