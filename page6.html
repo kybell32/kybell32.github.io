@@ -134,17 +134,25 @@ const NEXT_PAGE_URL = "page7.html";
   async function sessionUpsert(answers){
     if (!pid) return; // pid 없으면 기록 불가
     const payload = { type: 'SESSION_UPSERT', pid, page: 6, answers };
-    await fetch(API, {
-      method: 'POST',
-      headers: { 'Content-Type':'text/plain' },
-      body: JSON.stringify(payload)
-    });
+    try {
+      const res = await fetch(API, {
+        method: 'POST',
+        headers: { 'Content-Type':'text/plain' },
+        body: JSON.stringify(payload),
+        keepalive: true // 페이지 이동 중에도 요청 유지
+      });
+      if (!res.ok) console.warn("SESSION_UPSERT 실패:", res.status);
+    } catch(e) {
+      console.warn("SESSION_UPSERT 오류:", e);
+    }
   }
 
   // 5) 랜덤 자극 기록 + 안전한 redirect
   async function logVariantAndRedirect(){
     try {
       await sessionUpsert([{ key: 'P5_VARIANT', value: variant.key }]);
+      // 느린 네트워크에서도 안전하게 300ms 대기
+      await new Promise(r => setTimeout(r, 300));
     } catch(e) {
       console.warn("로그 기록 실패:", e);
     }
@@ -170,7 +178,6 @@ const NEXT_PAGE_URL = "page7.html";
 
   // 혹시 45초 초과 안전장치
   setTimeout(logVariantAndRedirect, DURATION_SEC*1000 + 500);
-
 })();
 </script>
 </body>
