@@ -39,18 +39,6 @@
     align-items:center;
     gap:4px;
   }
-  .spinner {
-    width:14px;
-    height:14px;
-    border:2px solid #ccc;
-    border-top-color:var(--pri);
-    border-radius:50%;
-    animation:spin 0.8s linear infinite;
-  }
-  @keyframes spin {
-    from {transform:rotate(0deg);}
-    to {transform:rotate(360deg);}
-  }
   .popup {
     background:#fff;
     border-radius:12px;
@@ -102,7 +90,6 @@
   <header>
     <div>소셜 미디어 연구</div>
     <div id="statusArea" class="status">
-      <div class="spinner"></div>
       <span>저장 중...</span>
     </div>
   </header>
@@ -148,7 +135,6 @@ const NEXT_PAGE_URL = "page2.html";
       // 상태: 저장 중
       submitBtn.disabled = true;
       statusArea.innerHTML = `
-        <div class="spinner"></div>
         <span>저장 중...</span>
       `;
 
