@@ -15,11 +15,7 @@
   }
   .brand{font-weight:700}
   .status{font-size:14px;color:var(--muted);display:flex;align-items:center;gap:4px;}
-  .spinner{
-    width:14px;height:14px;border:2px solid #ccc;border-top-color:var(--pri);
-    border-radius:50%;animation:spin 0.8s linear infinite;
-  }
-  @keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+
   main{max-width:760px;margin:16px auto;padding:0 16px}
   .post{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:0 6px 20px rgba(0,0,0,.04)}
   .row{display:flex;gap:12px;align-items:center}
@@ -36,7 +32,6 @@
 <header>
   <div class="brand">피드</div>
   <div id="statusArea" class="status">
-    <div class="spinner"></div>
     <span>저장 중...</span>
   </div>
 </header>
@@ -145,7 +140,6 @@ const NEXT_PAGE_URL = "page7.html";
     const payload = { type: 'SESSION_UPSERT', pid, page: 6, answers };
     try {
       statusArea.innerHTML = `
-        <div class="spinner"></div>
         <span>저장 중...</span>
       `;
       sending = true;
