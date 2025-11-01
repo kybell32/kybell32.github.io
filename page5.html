@@ -16,11 +16,7 @@
     font-weight:700;
   }
   .status{font-size:14px;color:var(--muted);display:flex;align-items:center;gap:4px;}
-  .spinner{
-    width:14px;height:14px;border:2px solid #ccc;border-top-color:var(--pri);
-    border-radius:50%;animation:spin 0.8s linear infinite;
-  }
-  @keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+
   .popup{background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,.08);padding:24px;max-width:420px;width:100%;text-align:center}
   h1{font-size:18px;margin:0 0 12px}
   p{margin:8px 0;color:#374151}
@@ -33,7 +29,6 @@
   <header>
     <div>실험 안내</div>
     <div id="statusArea" class="status">
-      <div class="spinner"></div>
       <span>저장 중...</span>
     </div>
   </header>
@@ -69,7 +64,6 @@ const NEXT_PAGE_URL = "page6.html";
 
     try {
       statusArea.innerHTML = `
-        <div class="spinner"></div>
         <span>저장 중...</span>
       `;
       go.disabled = true;
