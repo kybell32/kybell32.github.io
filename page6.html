@@ -8,11 +8,18 @@
   :root{--bg:#f6f7f9;--card:#fff;--line:#e5e7eb;--pri:#2563eb;--muted:#6b7280}
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,Arial,sans-serif;color:#111827}
-  header{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--line);padding:10px 16px;z-index:10}
-  header .inner{max-width:760px;margin:0 auto;display:flex;align-items:center;gap:10px}
+  header{
+    position:sticky;top:0;background:#fff;border-bottom:1px solid var(--line);
+    padding:10px 16px;z-index:10;
+    display:flex;justify-content:space-between;align-items:center;
+  }
   .brand{font-weight:700}
-  .spacer{flex:1}
-  .timer{font-variant-numeric:tabular-nums}
+  .status{font-size:14px;color:var(--muted);display:flex;align-items:center;gap:4px;}
+  .spinner{
+    width:14px;height:14px;border:2px solid #ccc;border-top-color:var(--pri);
+    border-radius:50%;animation:spin 0.8s linear infinite;
+  }
+  @keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
   main{max-width:760px;margin:16px auto;padding:0 16px}
   .post{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:0 6px 20px rgba(0,0,0,.04)}
   .row{display:flex;gap:12px;align-items:center}
@@ -27,10 +34,10 @@
 </head>
 <body>
 <header>
-  <div class="inner">
-    <div class="brand">피드</div>
-    <div class="spacer"></div>
-    <div class="timer"><span id="sec">45</span>s</div>
+  <div class="brand">피드</div>
+  <div id="statusArea" class="status">
+    <div class="spinner"></div>
+    <span>저장 중...</span>
   </div>
 </header>
 
@@ -64,7 +71,9 @@ const NEXT_PAGE_URL = "page7.html";
 (function(){
   const qs = new URLSearchParams(location.search);
   const pid = qs.get('pid') || localStorage.getItem('exp_pid') || '';
-  if (!pid) console.warn("pid가 비어 있습니다. 로그 기록 불가!");
+  const statusArea = document.getElementById('statusArea');
+  const secEl = document.createElement('div');
+  let sending = false;
 
   // 자극 텍스트 (A/B)
   const stimuli = {
@@ -105,7 +114,7 @@ const NEXT_PAGE_URL = "page7.html";
     }
   };
 
-  // 1) 자극 배정
+  // 자극 배정
   let variantKey = localStorage.getItem('stimulus_variant');
   if (!variantKey) {
     variantKey = Math.random() < 0.7 ? 'A' : 'B';
@@ -113,11 +122,11 @@ const NEXT_PAGE_URL = "page7.html";
   }
   const variant = stimuli[variantKey];
 
-  // 2) 화면 반영
+  // 화면 반영
   document.getElementById('title').textContent = variant.title;
   document.getElementById('body').textContent = variant.body;
 
-  // 3) 노출 지표(가짜) 생성
+  // 노출 지표(가짜) 생성
   const counts = (() => {
     const save = 30 + Math.floor(Math.random()*71);
     const comment = save + 20 + Math.floor(Math.random()*181);
@@ -130,53 +139,52 @@ const NEXT_PAGE_URL = "page7.html";
   document.getElementById('commentCnt').textContent = counts.comment.toLocaleString();
   document.getElementById('saveCnt').textContent = counts.save.toLocaleString();
 
-  // 4) sessionUpsert 함수
+  // Firestore-like 저장 함수 (Google Apps Script)
   async function sessionUpsert(answers){
-    if (!pid) return; // pid 없으면 기록 불가
+    if (!pid) return;
     const payload = { type: 'SESSION_UPSERT', pid, page: 6, answers };
     try {
+      statusArea.innerHTML = `
+        <div class="spinner"></div>
+        <span>저장 중...</span>
+      `;
+      sending = true;
       const res = await fetch(API, {
         method: 'POST',
         headers: { 'Content-Type':'text/plain' },
         body: JSON.stringify(payload),
-        keepalive: true // 페이지 이동 중에도 요청 유지
+        keepalive: true
       });
-      if (!res.ok) console.warn("SESSION_UPSERT 실패:", res.status);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      await res.json().catch(()=>({}));
+      statusArea.innerHTML = `<span style="color:#16a34a;">✅ 완료</span>`;
+      sending = false;
     } catch(e) {
       console.warn("SESSION_UPSERT 오류:", e);
+      statusArea.innerHTML = `<span style="color:#dc2626;">⚠ 저장 실패</span>`;
+      sending = false;
     }
   }
 
-  // 5) 랜덤 자극 기록 + 안전한 redirect
+  // 저장 후 페이지 이동
   async function logVariantAndRedirect(){
-    try {
-      await sessionUpsert([{ key: 'P5_VARIANT', value: variant.key }]);
-      // 느린 네트워크에서도 안전하게 300ms 대기
-      await new Promise(r => setTimeout(r, 300));
-    } catch(e) {
-      console.warn("로그 기록 실패:", e);
-    }
-    location.href = `${NEXT_PAGE_URL}?pid=${encodeURIComponent(pid)}`;
+    await sessionUpsert([{ key: 'P5_VARIANT', value: variant.key }]);
+    await new Promise(r => setTimeout(r, 300));
+    if (!sending) location.href = `${NEXT_PAGE_URL}?pid=${encodeURIComponent(pid)}`;
   }
 
-  // 6) 45초 타이머
-  const secEl = document.getElementById('sec');
-  const barEl = document.getElementById('bar');
+  // 45초 타이머
+  const secDisplay = document.createElement('div');
+  secDisplay.id = 'sec';
+  const timerNode = document.querySelector('.brand');
   let left = DURATION_SEC;
-  secEl.textContent = left;
-  barEl.style.width = '0%';
-
-  const tick = setInterval(()=>{
+  const barEl = document.getElementById('bar');
+  function tick(){
     left = Math.max(0, left - 1);
-    secEl.textContent = left;
     barEl.style.width = ((DURATION_SEC - left)/DURATION_SEC)*100 + '%';
-    if (left === 0) {
-      clearInterval(tick);
-      logVariantAndRedirect();
-    }
-  }, 1000);
-
-  // 혹시 45초 초과 안전장치
+    if (left === 0){ clearInterval(interval); logVariantAndRedirect(); }
+  }
+  const interval = setInterval(tick, 1000);
   setTimeout(logVariantAndRedirect, DURATION_SEC*1000 + 500);
 })();
 </script>
