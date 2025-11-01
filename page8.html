@@ -39,13 +39,6 @@
   .btn-area{text-align:center;margin-top:24px}
   .btn{border:none;border-radius:10px;padding:12px 20px;font-size:16px;background:#2563eb;color:#fff;font-weight:600;cursor:pointer}
   .btn:disabled{opacity:.5;cursor:not-allowed}
-  @media (max-width:480px){
-    main{padding:12px}
-    .card{padding:12px}
-    .q{padding:12px}
-    .scale{gap:6px}
-    label.chip{padding:8px 9px;font-size:13.5px}
-  }
 </style>
 </head>
 <body>
@@ -59,7 +52,6 @@
 
 <main>
   <h1>아래 문항에 응답해 주세요.</h1>
-
   <section class="section">
     <div class="card">
       <p class="title"><b>정신질환자들</b>이 아래에 제시되는 문장 속의 내용과 얼마나 일치하는지에 대해 동의하는 정도를 선택해 주십시오.</p>
@@ -67,7 +59,6 @@
       <div id="sec3"></div>
     </div>
   </section>
-
   <div class="btn-area">
     <button id="nextBtn" class="btn" disabled>다음</button>
   </div>
@@ -93,7 +84,7 @@ const SEC3 = [
   ["정신질환자들은 세련되지 못한 것 같다.","s3_q12","P7_S3_Q12",7],
 ];
 
-(function(){
+document.addEventListener('DOMContentLoaded', () => {
   const qs = new URLSearchParams(location.search);
   const pid = qs.get('pid') || localStorage.getItem('exp_pid') || '';
   const nextBtn = document.getElementById('nextBtn');
@@ -101,22 +92,19 @@ const SEC3 = [
   let sending = false;
 
   // 문항 렌더링
-  function renderSection(containerId, items){
-    const wrap = document.getElementById(containerId);
-    items.forEach(([text, name, qkey, scale])=>{
-      const q = document.createElement('div');
-      q.className = 'q';
-      q.innerHTML = `<div class="qname">${text}</div>
-                     <div class="scale" data-name="${name}" data-qkey="${qkey}" data-scale="${scale}"></div>`;
-      wrap.appendChild(q);
-    });
-  }
-  renderSection('sec3', SEC3);
+  const wrap = document.getElementById('sec3');
+  SEC3.forEach(([text, name, qkey, scale])=>{
+    const q = document.createElement('div');
+    q.className = 'q';
+    q.innerHTML = `<div class="qname">${text}</div>
+                   <div class="scale" data-name="${name}" data-qkey="${qkey}" data-scale="${scale}"></div>`;
+    wrap.appendChild(q);
+  });
 
   // 칩 생성
   document.querySelectorAll('.scale').forEach(scale=>{
     const name = scale.dataset.name;
-    const max = parseInt(scale.dataset.scale,10)||5;
+    const max = parseInt(scale.dataset.scale,10)||7;
     for(let v=1; v<=max; v++){
       const lab=document.createElement('label');
       lab.className='chip';
@@ -128,11 +116,10 @@ const SEC3 = [
   // 선택 반영
   function refreshGroup(name){
     document.querySelectorAll(`label.chip input[name="${name}"]`).forEach(r=>{
-      const lab = r.closest('label.chip');
+      const lab=r.closest('label.chip');
       lab.classList.toggle('selected',r.checked);
     });
   }
-
   document.addEventListener('change',e=>{
     if(e.target.matches('input[type="radio"]')){
       refreshGroup(e.target.name);
@@ -159,21 +146,15 @@ const SEC3 = [
   async function sessionUpsert(answers){
     const payload={type:'SESSION_UPSERT',pid,page:PAGE,answers};
     try{
-      statusArea.innerHTML=`
-        <div class="spinner"></div>
-        <span>저장 중...</span>
-      `;
+      statusArea.innerHTML=`<span>저장 중...</span>`;
       sending=true; refreshBtn();
-
       const res=await fetch(API,{
         method:'POST',
         headers:{'Content-Type':'text/plain'},
         body:JSON.stringify(payload),
         keepalive:true
       });
-      if(!res.ok) throw new Error(\`HTTP \${res.status}\`);
-      await res.json().catch(()=>({}));
-
+      if(!res.ok) throw new Error(`HTTP ${res.status}`);
       statusArea.innerHTML=`<span style="color:#16a34a;">✅ 완료</span>`;
       sending=false; refreshBtn();
       return true;
@@ -188,15 +169,13 @@ const SEC3 = [
   nextBtn.addEventListener('click',async()=>{
     if(!answeredAll()||sending) return;
     sending=true; refreshBtn();
-
     const ok = await sessionUpsert(collectAnswers());
     if(ok){
       await new Promise(r=>setTimeout(r,300));
-      location.href=\`${NEXT_PAGE_URL}?pid=\${encodeURIComponent(pid)}\`;
+      location.href=`${NEXT_PAGE_URL}?pid=${encodeURIComponent(pid)}`;
     }
   });
-})();
+});
 </script>
 </body>
 </html>
-
