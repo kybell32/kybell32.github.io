@@ -1,5 +1,3 @@
-p.4
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -10,7 +8,17 @@ p.4
   :root{--line:#e5e7eb;--pri:#2563eb;--bg:#f6f7f9;--muted:#6b7280}
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,Arial,sans-serif;color:#111827;line-height:1.6}
-  header{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--line);padding:12px;text-align:center;font-weight:700}
+  header{
+    position:sticky;top:0;background:#fff;border-bottom:1px solid var(--line);
+    padding:12px 16px;display:flex;justify-content:space-between;align-items:center;
+    font-weight:700;
+  }
+  .status{font-size:14px;color:var(--muted);display:flex;align-items:center;gap:4px;}
+  .spinner{
+    width:14px;height:14px;border:2px solid #ccc;border-top-color:var(--pri);
+    border-radius:50%;animation:spin 0.8s linear infinite;
+  }
+  @keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
   main{max-width:980px;margin:0 auto;padding:18px}
   h1{font-size:20px;margin:6px 0 12px}
   .section{margin:14px 0 28px}
@@ -34,7 +42,14 @@ p.4
 </style>
 </head>
 <body>
-<header>설문 (1/2)</header>
+<header>
+  <div>설문 (1/2)</div>
+  <div id="statusArea" class="status">
+    <div class="spinner"></div>
+    <span>저장 중...</span>
+  </div>
+</header>
+
 <main>
   <h1>아래 문항에 응답해 주세요. 모든 문항에 응답해야 다음으로 이동할 수 있습니다.</h1>
 
@@ -88,6 +103,7 @@ const SEC2 = [
   const qs = new URLSearchParams(location.search);
   const pid = qs.get('pid') || localStorage.getItem('exp_pid') || '';
   const nextBtn = document.getElementById('nextBtn');
+  const statusArea = document.getElementById('statusArea');
   let sending = false;
 
   function renderSection(containerId, items){
@@ -135,11 +151,6 @@ const SEC2 = [
   function answeredAll(){return REQUIRED.every(n=>document.querySelector(`input[name="${n}"]:checked`));}
   function refreshBtn(){nextBtn.disabled = !answeredAll() || sending;}
 
-  async function sessionUpsert(answers){
-    const payload = {type:'SESSION_UPSERT', pid, page:PAGE, answers};
-    await fetch(API, {method:'POST', headers:{'Content-Type':'text/plain'}, body:JSON.stringify(payload)});
-  }
-
   function collectAnswers(){
     const out=[];
     document.querySelectorAll('.scale').forEach(scale=>{
@@ -149,12 +160,35 @@ const SEC2 = [
     return out;
   }
 
-  nextBtn.addEventListener('click', async ()=>{
+  async function saveAndNext(){
     if (!answeredAll() || sending) return;
     sending = true; refreshBtn();
-    try { await sessionUpsert(collectAnswers()); } catch(e){ console.warn(e); }
-    location.href = `${NEXT_PAGE_URL}?pid=${encodeURIComponent(pid)}`;
-  });
+    statusArea.innerHTML = `
+      <div class="spinner"></div>
+      <span>저장 중...</span>
+    `;
+    try {
+      const payload = {type:'SESSION_UPSERT', pid, page:PAGE, answers:collectAnswers()};
+      const res = await fetch(API, {method:'POST', headers:{'Content-Type':'text/plain'}, body:JSON.stringify(payload)});
+      if(!res.ok) throw new Error(`HTTP ${res.status}`);
+      await res.json().catch(()=>({}));
+
+      statusArea.innerHTML = `<span style="color:#16a34a;">✅ 완료</span>`;
+      sending = false;
+      refreshBtn();
+
+      location.href = `${NEXT_PAGE_URL}?pid=${encodeURIComponent(pid)}`;
+
+    } catch(e) {
+      console.warn('저장 실패:', e);
+      statusArea.innerHTML = `<span style="color:#dc2626;">⚠ 저장 실패</span>`;
+      sending = false;
+      refreshBtn();
+      alert('데이터 저장에 실패했습니다. 인터넷 연결을 확인하고 다시 시도해주세요.');
+    }
+  }
+
+  nextBtn.addEventListener('click', saveAndNext);
 })();
 </script>
 </body>
