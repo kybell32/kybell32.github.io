@@ -1,15 +1,26 @@
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>소셜 미디어 연구_p4 </title>
+<title>소셜 미디어 연구_p4</title>
 <style>
   :root{--bg:#ffffff;--line:#e5e7eb;--pri:#2563eb;--muted:#6b7280}
   *{box-sizing:border-box}
   html,body{height:100%}
   body{margin:0;background:var(--bg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,Arial,sans-serif;color:#111827;display:flex;align-items:center;justify-content:center}
+  header{
+    position:fixed;top:0;left:0;right:0;
+    background:#fff;border-bottom:1px solid var(--line);
+    padding:12px 16px;display:flex;justify-content:space-between;align-items:center;
+    font-weight:700;
+  }
+  .status{font-size:14px;color:var(--muted);display:flex;align-items:center;gap:4px;}
+  .spinner{
+    width:14px;height:14px;border:2px solid #ccc;border-top-color:var(--pri);
+    border-radius:50%;animation:spin 0.8s linear infinite;
+  }
+  @keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
   .popup{background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,.08);padding:24px;max-width:420px;width:100%;text-align:center}
   h1{font-size:18px;margin:0 0 12px}
   p{margin:8px 0;color:#374151}
@@ -19,11 +30,19 @@
 </style>
 </head>
 <body>
+  <header>
+    <div>실험 안내</div>
+    <div id="statusArea" class="status">
+      <div class="spinner"></div>
+      <span>저장 중...</span>
+    </div>
+  </header>
+
   <main class="popup" aria-labelledby="ttl">
     <h1 id="ttl">실험 안내</h1>
     <p>다음은 한 소셜 미디어에 게시된 글입니다.</p>
     <p class="muted">글은 <strong>45초</strong>간 제시됩니다.</p>
-    <button id="go" class="btn">읽기</button>
+    <button id="go" class="btn" disabled>읽기</button>
   </main>
 
 <script>
@@ -37,6 +56,7 @@ const NEXT_PAGE_URL = "page6.html";
   const qs = new URLSearchParams(location.search);
   const pid = qs.get('pid') || localStorage.getItem('exp_pid') || '';
   const go = document.getElementById('go');
+  const statusArea = document.getElementById('statusArea');
   let sending = false;
 
   async function sessionUpsert() {
@@ -44,21 +64,45 @@ const NEXT_PAGE_URL = "page6.html";
       type: 'SESSION_UPSERT',
       pid,
       page: PAGE,
-      answers: [] // 수집값 없음 → 메타만 갱신 (updated_at, last_page, pages_submitted)
+      answers: []
     };
-    const res = await fetch(API, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain' }, // 심플 요청 → preflight 없음
-      body: JSON.stringify(payload)
-    });
-    if (!res.ok) console.warn('SESSION_UPSERT failed:', res.status);
+
+    try {
+      statusArea.innerHTML = `
+        <div class="spinner"></div>
+        <span>저장 중...</span>
+      `;
+      go.disabled = true;
+
+      const res = await fetch(API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      await res.json().catch(()=>({}));
+
+      statusArea.innerHTML = `<span style="color:#16a34a;">✅ 완료</span>`;
+      go.disabled = false;
+
+    } catch(e) {
+      console.warn('저장 실패:', e);
+      statusArea.innerHTML = `<span style="color:#dc2626;">⚠ 저장 실패</span>`;
+      go.disabled = false;
+    }
   }
+
+  // 페이지 로드 시 자동 저장
+  document.addEventListener('DOMContentLoaded', sessionUpsert);
 
   go.addEventListener('click', async ()=>{
     if (sending) return;
     sending = true;
     go.disabled = true;
+
     try { await sessionUpsert(); } catch(e) { console.warn(e); }
+
     const next = `${NEXT_PAGE_URL}?pid=${encodeURIComponent(pid)}`;
     location.href = next;
   });
