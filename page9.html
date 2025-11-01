@@ -5,8 +5,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>소셜 미디어 연구_p8</title>
 <style>
-  :root{--line:#e5e7eb;--pri:#2563eb}
+  :root{--line:#e5e7eb;--pri:#2563eb;--muted:#6b7280}
   body{margin:0;background:#f6f7f9;font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,Arial,sans-serif;color:#111827}
+  header{
+    position:sticky;top:0;background:#fff;border-bottom:1px solid var(--line);
+    padding:12px 16px;display:flex;justify-content:space-between;align-items:center;
+    font-weight:700;z-index:10;
+  }
+  .status{font-size:14px;color:var(--muted);display:flex;align-items:center;gap:4px;}
+  .spinner{
+    width:14px;height:14px;border:2px solid #ccc;border-top-color:var(--pri);
+    border-radius:50%;animation:spin 0.8s linear infinite;
+  }
+  @keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
   .container{max-width:720px;margin:20px auto;padding:0 16px}
   .notice{margin-bottom:16px;font-size:18px;font-weight:600;text-align:center}
   .card{background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.05);padding:16px}
@@ -21,6 +32,14 @@
 </style>
 </head>
 <body>
+<header>
+  <div>게시글 읽기</div>
+  <div id="statusArea" class="status">
+    <div class="spinner"></div>
+    <span>저장 중...</span>
+  </div>
+</header>
+
 <div class="container">
   <div class="notice">45초 동안 아래 게시물을 읽은 후 다음 질문에 답해 주십시오.</div>
   <div class="card">
@@ -46,10 +65,19 @@ const API = "https://script.google.com/macros/s/AKfycbxhI7GJJI2jebIWhxr_3nkvvYSt
 const PAGE = 9;
 const NEXT_PAGE_URL = "page10.html";
 const DISPLAY_MS = 45000; // 45초
-const STIM_KEY = "P8_POST_1"; // 분석용 식별자
+const STIM_KEY = "P8_POST_1";
 /***** ▲ 설정 끝 ▲ *****/
 
-const text = `정신질환자들은 솔직히 사회에서는 짐이지.
+(function(){
+  const qs = new URLSearchParams(location.search);
+  const pid = qs.get('pid') || localStorage.getItem('exp_pid') || '';
+  const bodyEl = document.getElementById('body');
+  const bar = document.getElementById('bar');
+  const statusArea = document.getElementById('statusArea');
+  let sending = false;
+
+  // 게시글 본문
+  const text = `정신질환자들은 솔직히 사회에서는 짐이지.
 약 먹으면서도 일도 제대로 못하고, 주변 사람까지 힘들게 만드니까.
 
 요즘은 조금만 힘들어도 다들 정신병이라고 우기는데
@@ -62,12 +90,9 @@ const text = `정신질환자들은 솔직히 사회에서는 짐이지.
 주변 사람들한테 피해만 주잖아.
 아무리 본인이 원하지 않아도 피해를 주는데 어떻게 해서라도 병동 입원시켜야지.`;
 
-(function(){
-  const qs = new URLSearchParams(location.search);
-  const pid = qs.get('pid') || localStorage.getItem('exp_pid') || '';
-  document.getElementById('body').textContent = text;
+  bodyEl.textContent = text;
 
-  // 더미 지표
+  // 더미 수치
   const counts = (() => {
     const save = 30 + Math.floor(Math.random()*21);
     const comment = save + Math.floor(Math.random()*100);
@@ -80,52 +105,66 @@ const text = `정신질환자들은 솔직히 사회에서는 짐이지.
   document.getElementById('commentCnt').textContent = counts.comment.toLocaleString();
   document.getElementById('saveCnt').textContent = counts.save.toLocaleString();
 
-  // 페이지 노출 기록
+  // 데이터 저장 함수
+  async function sessionUpsert(answers){
+    const payload = { type:'SESSION_UPSERT', pid, page: PAGE, answers };
+    try {
+      statusArea.innerHTML = `
+        <div class="spinner"></div>
+        <span>저장 중...</span>
+      `;
+      sending = true;
+      const res = await fetch(API, {
+        method: 'POST',
+        headers: { 'Content-Type':'text/plain' },
+        body: JSON.stringify(payload),
+        keepalive: true
+      });
+      if(!res.ok) throw new Error(`HTTP ${res.status}`);
+      await res.json().catch(()=>({}));
+      statusArea.innerHTML = `<span style="color:#16a34a;">✅ 완료</span>`;
+      sending = false;
+      return true;
+    } catch(e) {
+      console.warn("저장 실패:", e);
+      statusArea.innerHTML = `<span style="color:#dc2626;">⚠ 저장 실패</span>`;
+      sending = false;
+      return false;
+    }
+  }
+
+  // 초기 저장 (게시글 제시 정보)
   sessionUpsert([
     { key: 'P8_STIM_KEY', value: STIM_KEY },
     { key: 'P8_SHOWN_MS', value: String(DISPLAY_MS) }
-  ]).catch(console.warn);
+  ]);
 
-  // 진행바 및 타이머
-  const bar = document.getElementById('bar');
+  // 타이머
   let elapsed = 0;
-  const interval = setInterval(()=>{
+  const tick = setInterval(async ()=>{
     elapsed += 1000;
     bar.style.width = Math.min(100, (elapsed / DISPLAY_MS) * 100) + "%";
-    if (elapsed >= DISPLAY_MS) {
-      clearInterval(interval);
-      redirect();
+    if(elapsed >= DISPLAY_MS){
+      clearInterval(tick);
+      await redirect();
     }
   }, 1000);
 
-  // 안전한 리디렉션 함수
+  // 저장 완료 후 리디렉션
   async function redirect(){
-    try {
-      // 업서트 후 0.2초 대기
-      await sessionUpsert([]);
-      await new Promise(r => setTimeout(r, 200));
-    } catch(e){ console.warn(e); }
-
-    const next = `${NEXT_PAGE_URL}?pid=${encodeURIComponent(pid)}`;
-    location.href = next;
+    const ok = await sessionUpsert([]);
+    if(ok){
+      await new Promise(r=>setTimeout(r,300));
+      location.href = `${NEXT_PAGE_URL}?pid=${encodeURIComponent(pid)}`;
+    }
   }
 
-  // 공통 업서트 함수
-  async function sessionUpsert(answers){
-    const payload = { type:'SESSION_UPSERT', pid, page: PAGE, answers };
-    await fetch(API, {
-      method: 'POST',
-      headers: { 'Content-Type':'text/plain' },
-      body: JSON.stringify(payload)
-    });
-  }
-
-  // 페이지 종료 대비 sendBeacon 백업
-  window.addEventListener('beforeunload', () => {
-    try {
+  // 종료 대비 백업
+  window.addEventListener('beforeunload', ()=>{
+    try{
       const payload = JSON.stringify({ type:'SESSION_UPSERT', pid, page: PAGE, answers: [] });
       navigator.sendBeacon(API, new Blob([payload], { type:'text/plain' }));
-    } catch(e) {}
+    }catch(e){}
   });
 })();
 </script>
