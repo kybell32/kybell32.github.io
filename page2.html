@@ -5,18 +5,60 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>소셜 미디어 연구_p2</title>
 <style>
+  :root {
+    --pri:#2563eb;
+    --line:#e5e7eb;
+    --muted:#6b7280;
+  }
   body{margin:0;background:#fff;font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,Arial,sans-serif;color:#111827;line-height:1.6}
-  header{position:sticky;top:0;background:#fff;border-bottom:1px solid #e5e7eb;padding:12px;text-align:center;font-weight:600}
+  header{
+    position:sticky;top:0;background:#fff;
+    border-bottom:1px solid var(--line);
+    padding:12px 16px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-weight:600;
+  }
+  .status {
+    font-size:14px;
+    color:var(--muted);
+    display:flex;
+    align-items:center;
+    gap:4px;
+  }
+  .spinner {
+    width:14px;
+    height:14px;
+    border:2px solid #ccc;
+    border-top-color:var(--pri);
+    border-radius:50%;
+    animation:spin 0.8s linear infinite;
+  }
+  @keyframes spin {
+    from {transform:rotate(0deg);}
+    to {transform:rotate(360deg);}
+  }
   main{max-width:800px;margin:0 auto;padding:20px;}
   h1{font-size:20px;margin-top:0}
   .section{margin-bottom:24px}
   .btn-area{margin:24px 0;text-align:center}
-  .btn{border:none;border-radius:10px;padding:12px 20px;font-size:16px;background:#2563eb;color:#fff;font-weight:600;cursor:pointer}
+  .btn{
+    border:none;border-radius:10px;padding:12px 20px;
+    font-size:16px;background:var(--pri);color:#fff;font-weight:600;cursor:pointer;
+  }
   .btn:disabled{opacity:.5;cursor:not-allowed}
 </style>
 </head>
 <body>
-<header>연구 안내</header>
+<header>
+  <div>연구 안내</div>
+  <div id="statusArea" class="status">
+    <div class="spinner"></div>
+    <span>저장 중...</span>
+  </div>
+</header>
+
 <main>
   <h1>연구 제목: 소셜 미디어 게시글과 개인 특성 연구</h1>
   <div class="section">
@@ -40,7 +82,7 @@
        ■ 중앙대학교 생명윤리 위원회 (TEL: 02-820-6346, ethics@cau.ac.kr)</p>
   </div>
   <div class="btn-area">
-    <button id="nextBtn" class="btn">다음</button>
+    <button id="nextBtn" class="btn" disabled>다음</button>
   </div>
 </main>
 
@@ -55,8 +97,9 @@ const NEXT_PAGE_URL = "page3.html";
   const qs = new URLSearchParams(location.search);
   const pid = qs.get('pid') || localStorage.getItem('exp_pid') || '';
   const nextBtn = document.getElementById('nextBtn');
-  let sending = false;
+  const statusArea = document.getElementById('statusArea');
 
+  // 저장 함수
   async function sessionUpsert() {
     const payload = {
       type: 'SESSION_UPSERT',
@@ -64,23 +107,39 @@ const NEXT_PAGE_URL = "page3.html";
       page: PAGE,
       answers: []
     };
+
     try {
+      statusArea.innerHTML = `
+        <div class="spinner"></div>
+        <span>저장 중...</span>
+      `;
+      nextBtn.disabled = true;
+
       const res = await fetch(API, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain' },
         body: JSON.stringify(payload)
       });
+
       if (!res.ok) console.warn('SESSION_UPSERT failed:', res.status);
-    } catch(e){ console.warn(e); }
+
+      // 저장 완료 표시
+      statusArea.innerHTML = `<span style="color:#16a34a;">✅ 완료</span>`;
+      nextBtn.disabled = false;
+      console.log('저장 완료');
+
+    } catch(e){
+      console.warn('저장 실패:', e);
+      statusArea.innerHTML = `<span style="color:#dc2626;">⚠ 저장 실패</span>`;
+      nextBtn.disabled = false;
+    }
   }
 
-  nextBtn.addEventListener('click', async () => {
-    if (sending) return;
-    sending = true;
-    nextBtn.disabled = true;
+  // 페이지 로드 시 자동 저장 → 완료되면 버튼 활성화
+  document.addEventListener('DOMContentLoaded', sessionUpsert);
 
-    await sessionUpsert();
-
+  // 다음 버튼 클릭 시 다음 페이지 이동
+  nextBtn.addEventListener('click', ()=>{
     const next = `${NEXT_PAGE_URL}?pid=${encodeURIComponent(pid)}`;
     location.href = next;
   });
