@@ -112,7 +112,7 @@ const NEXT_PAGE_URL = "page7.html";
   // 자극 배정
   let variantKey = localStorage.getItem('stimulus_variant');
   if (!variantKey) {
-    variantKey = Math.random() < 0.5 ? 'A' : 'B';
+    variantKey = Math.random() < 0.8 ? 'A' : 'B';
     localStorage.setItem('stimulus_variant', variantKey);
   }
   const variant = stimuli[variantKey];
