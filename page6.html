@@ -109,13 +109,16 @@ const NEXT_PAGE_URL = "page7.html";
     }
   };
 
-  // 자극 배정
-  let variantKey = localStorage.getItem('stimulus_variant');
-  if (!variantKey) {
-    variantKey = Math.random() < 0.9 ? 'A' : 'B';
-    localStorage.setItem('stimulus_variant', variantKey);
-  }
+  /******************************
+   *  🔥 수정된 자극 배정 부분
+   ******************************/
+  
+  // localStorage 기록을 무시하고 항상 A로 설정
+  localStorage.setItem('stimulus_variant', 'A');
+  const variantKey = 'A';
   const variant = stimuli[variantKey];
+
+  /******************************/
 
   // 화면 반영
   document.getElementById('title').textContent = variant.title;
